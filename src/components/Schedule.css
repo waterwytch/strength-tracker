@@ -1,0 +1,28 @@
+.schedule-page { padding: 12px; }
+.schedule-title { font-size: 18px; font-weight: 700; margin-bottom: 14px; }
+.sched-loading { padding: 40px; text-align: center; color: #555; }
+.sched-section { background: #1a1a1a; border: 1px solid #222; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+.sched-section-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+.sched-day-card { border: 1px solid #222; border-radius: 8px; padding: 12px; margin-bottom: 8px; background: #111; }
+.sched-day-top { display: flex; justify-content: space-between; align-items: center; }
+.sched-day-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+.sched-day-title { font-size: 14px; font-weight: 600; }
+.toggle-wrap { position: relative; display: inline-block; }
+.toggle-input { position: absolute; opacity: 0; width: 0; height: 0; }
+.toggle-track { width: 44px; height: 26px; background: #2a2a2a; border-radius: 13px; position: relative; transition: background 0.2s; cursor: pointer; }
+.toggle-track.on { background: #1e5a30; }
+.toggle-thumb { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: #888; border-radius: 50%; transition: transform 0.2s, background 0.2s; }
+.toggle-track.on .toggle-thumb { transform: translateX(18px); background: #30c060; }
+.sched-day-fields { display: grid; grid-template-columns: 1fr 120px; gap: 8px; margin-top: 10px; }
+.sched-select { padding: 9px 10px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; color: #e8e8e8; font-size: 13px; width: 100%; appearance: none; }
+.sched-time { padding: 9px 10px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; color: #e8e8e8; font-size: 13px; width: 100%; }
+.sched-select:focus, .sched-time:focus { outline: none; border-color: #4488ff; }
+.save-sched-btn { width: 100%; margin-top: 4px; padding: 12px; background: #0d1f3a; border: 1px solid #1e4080; border-radius: 8px; color: #5b9cf6; font-size: 14px; font-weight: 600; }
+.save-sched-btn:disabled { opacity: 0.5; }
+.upcoming-card { display: flex; justify-content: space-between; align-items: center; background: #111; border: 1px solid #222; border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+.upcoming-left { flex: 1; }
+.upcoming-day { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.upcoming-date { font-size: 12px; color: #888; margin-bottom: 2px; }
+.upcoming-type { font-size: 12px; color: #5b9cf6; }
+.cal-btn { width: 36px; height: 36px; border: 1px solid #2a2a2a; border-radius: 8px; background: #1a1a1a; font-size: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 10px; }
+.cal-note { font-size: 11px; color: #444; text-align: center; margin-top: 8px; }

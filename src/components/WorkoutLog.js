@@ -1,0 +1,359 @@
+import React, { useState, useEffect, useCallback } from 'react'
+import { supabase } from '../lib/supabase'
+import { DAYS, JOINTS, FORM, BANK, SEED_SESSIONS } from '../lib/data'
+import './WorkoutLog.css'
+
+export default function WorkoutLog({ userId }) {
+  const [dayIdx, setDayIdx] = useState(0)
+  const [draft, setDraft] = useState(null)
+  const [lastSession, setLastSession] = useState(null)
+  const [view, setView] = useState('log') // log | success | swap
+  const [swapTarget, setSwapTarget] = useState(null)
+  const [savedSession, setSavedSession] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [seeded, setSeeded] = useState(false)
+
+  const loadLastSession = useCallback(async (idx) => {
+    const { data } = await supabase
+      .from('sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('day_index', idx)
+      .order('session_date', { ascending: false })
+      .limit(1)
+    setLastSession(data && data[0] ? data[0] : null)
+  }, [userId])
+
+  const seedSessions = useCallback(async () => {
+    const { data: existing } = await supabase.from('sessions').select('id').eq('user_id', userId).limit(1)
+    if (existing && existing.length > 0) { setSeeded(true); return; }
+    for (const s of SEED_SESSIONS) {
+      await supabase.from('sessions').insert({
+        user_id: userId,
+        day_index: s.day_index,
+        day_title: s.day_title,
+        session_date: s.session_date,
+        notes: s.notes,
+        joints: s.joints,
+        exercises: s.exercises
+      })
+    }
+    setSeeded(true)
+  }, [userId])
+
+  useEffect(() => {
+    seedSessions()
+  }, [seedSessions])
+
+  useEffect(() => {
+    if (seeded) loadLastSession(dayIdx)
+  }, [dayIdx, seeded, loadLastSession])
+
+  useEffect(() => {
+    if (!lastSession) {
+      initDraft(dayIdx, null)
+    } else {
+      initDraft(dayIdx, lastSession)
+    }
+  }, [lastSession, dayIdx])
+
+  function initDraft(idx, last) {
+    const D = DAYS[idx]
+    const exList = D.exercises.map((ex, ei) => {
+      const prevSets = last && last.exercises && last.exercises[ei] && last.exercises[ei].name === ex.n
+        ? last.exercises[ei].sets : null
+      const sets = Array.from({ length: ex.sets }, (_, si) => ({
+        reps: prevSets && prevSets[si] ? prevSets[si].reps : ex.reps,
+        wt: prevSets && prevSets[si] ? prevSets[si].wt : ex.wt,
+        done: false
+      }))
+      return { name: ex.n, rest: ex.rest, sets }
+    })
+    setDraft({ joints: {}, notes: '', exercises: exList })
+  }
+
+  function updateSet(ei, si, field, value) {
+    setDraft(prev => {
+      const next = { ...prev, exercises: prev.exercises.map((ex, i) => {
+        if (i !== ei) return ex
+        return { ...ex, sets: ex.sets.map((s, j) => j === si ? { ...s, [field]: value } : s) }
+      })}
+      return next
+    })
+  }
+
+  function toggleDone(ei, si) {
+    setDraft(prev => ({
+      ...prev,
+      exercises: prev.exercises.map((ex, i) => {
+        if (i !== ei) return ex
+        return { ...ex, sets: ex.sets.map((s, j) => j === si ? { ...s, done: !s.done } : s) }
+      })
+    }))
+  }
+
+  function addSet(ei) {
+    setDraft(prev => ({
+      ...prev,
+      exercises: prev.exercises.map((ex, i) => {
+        if (i !== ei) return ex
+        const last = ex.sets[ex.sets.length - 1] || { reps: '8', wt: '—', done: false }
+        return { ...ex, sets: [...ex.sets, { reps: last.reps, wt: last.wt, done: false }] }
+      })
+    }))
+  }
+
+  function removeSet(ei, si) {
+    setDraft(prev => ({
+      ...prev,
+      exercises: prev.exercises.map((ex, i) => {
+        if (i !== ei || ex.sets.length <= 1) return ex
+        return { ...ex, sets: ex.sets.filter((_, j) => j !== si) }
+      })
+    }))
+  }
+
+  function setJoint(joint, val) {
+    setDraft(prev => ({
+      ...prev,
+      joints: { ...prev.joints, [joint]: prev.joints[joint] === val ? null : val }
+    }))
+  }
+
+  function doSwap(name) {
+    const { ei } = swapTarget
+    setDraft(prev => ({
+      ...prev,
+      exercises: prev.exercises.map((ex, i) => {
+        if (i !== ei) return ex
+        return { ...ex, name, sets: ex.sets.map(s => ({ ...s, done: false })) }
+      })
+    }))
+    setView('log')
+    setSwapTarget(null)
+  }
+
+  async function finishSession() {
+    setSaving(true)
+    const D = DAYS[dayIdx]
+    const today = new Date().toISOString().split('T')[0]
+    const { data, error } = await supabase.from('sessions').insert({
+      user_id: userId,
+      day_index: dayIdx,
+      day_title: D.title,
+      session_date: today,
+      notes: draft.notes,
+      joints: draft.joints,
+      exercises: draft.exercises
+    }).select().single()
+    setSaving(false)
+    if (error) { alert('Save failed: ' + error.message); return; }
+    setSavedSession(data)
+    setView('success')
+  }
+
+  function afterSuccess() {
+    setView('log')
+    setSavedSession(null)
+    loadLastSession(dayIdx)
+  }
+
+  const D = DAYS[dayIdx]
+
+  if (view === 'success' && savedSession) {
+    const exList = savedSession.exercises || []
+    const doneSets = exList.reduce((a, ex) => a + ex.sets.filter(s => s.done).length, 0)
+    const totalSets = exList.reduce((a, ex) => a + ex.sets.length, 0)
+    const doneEx = exList.filter(ex => ex.sets.some(s => s.done)).length
+    return (
+      <div className="success-screen">
+        <div className="success-icon">🏋️</div>
+        <div className="success-title">Session Saved!</div>
+        <div className="success-date">{new Date(savedSession.session_date).toLocaleDateString('en-US', {weekday:'long',month:'long',day:'numeric'})}</div>
+        <div className="success-stats">
+          <div><div className="success-stat-v">{doneSets}/{totalSets}</div><div className="success-stat-l">Sets done</div></div>
+          <div><div className="success-stat-v">{doneEx}/{exList.length}</div><div className="success-stat-l">Exercises</div></div>
+        </div>
+        <div className="success-exlist">
+          {exList.map((ex, i) => {
+            const dc = ex.sets.filter(s => s.done).length
+            const wt = ex.sets.find(s => s.done && s.wt && s.wt !== 'BW' && s.wt !== 'band' && s.wt !== 'light')
+            return (
+              <div key={i} className="success-ex-row">
+                <span className="success-ex-name">{ex.name}</span>
+                <span className="success-ex-stat">{dc}/{ex.sets.length}{wt ? ` @ ${wt.wt} lbs` : ''}</span>
+              </div>
+            )
+          })}
+        </div>
+        {savedSession.notes && <div className="success-notes">📝 {savedSession.notes}</div>}
+        <button className="success-done-btn" onClick={afterSuccess}>✓ Done</button>
+      </div>
+    )
+  }
+
+  if (view === 'swap' && swapTarget !== null) {
+    const curName = draft.exercises[swapTarget.ei].name
+    return (
+      <div className="swap-view">
+        <div className="swap-header">
+          <button className="back-btn" onClick={() => { setView('log'); setSwapTarget(null) }}>← Back</button>
+          <div className="swap-title">Swap exercise</div>
+        </div>
+        <div className="swap-current">Currently: <strong>{curName}</strong></div>
+        {Object.entries(BANK).map(([group, exArr]) => (
+          <div key={group}>
+            <div className="swap-group-label">{group}</div>
+            {exArr.map(ex => (
+              <div key={ex.n} className="swap-opt">
+                <div>
+                  <div className="swap-opt-name">{ex.n}{ex.n === curName ? ' ✓' : ''}</div>
+                  <div className="swap-opt-desc">{ex.d}</div>
+                </div>
+                {ex.n === curName
+                  ? <span className="swap-current-label">Current</span>
+                  : <button className="swap-select-btn" onClick={() => doSwap(ex.n)}>Select</button>
+                }
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (!draft) return <div className="loading-msg">Loading...</div>
+
+  const prevDate = lastSession ? new Date(lastSession.session_date).toLocaleDateString('en-US', {weekday:'short',month:'short',day:'numeric'}) : null
+
+  return (
+    <div className="workout-log">
+      <div className="wl-header">
+        <div className="watch-note">⌚ Enable <strong>Functional Strength Training</strong> on Apple Watch before starting.</div>
+        <div className="day-tabs">
+          {DAYS.map((d, i) => (
+            <button key={i} className={`day-tab ${dayIdx === i ? 'active' : ''}`} onClick={() => setDayIdx(i)}>
+              {d.label}<br /><span className="day-tab-sub">{d.title.split(' ')[0]}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="wl-body">
+        <div className="sess-title">{D.title}</div>
+        <div className="sess-meta">
+          {new Date().toLocaleDateString('en-US', {weekday:'long',month:'long',day:'numeric'})}
+          {prevDate && <span> · Last: {prevDate}</span>}
+        </div>
+        {D.rehab && <div className="rehab-note">⚠️ {D.rehab}</div>}
+
+        <div className="sec-label">Warm-up</div>
+        {D.warmup.map((w, i) => (
+          <div key={i} className="wu-card">
+            <div className="wu-name">{w.n}</div>
+            <div className="wu-desc">{w.d}</div>
+          </div>
+        ))}
+
+        <div className="sec-label">Exercises</div>
+        {draft.exercises.map((ex, ei) => {
+          const f = FORM[ex.name]
+          const prevEx = lastSession && lastSession.exercises && lastSession.exercises[ei] && lastSession.exercises[ei].name === ex.name ? lastSession.exercises[ei] : null
+          const prevNote = prevEx && prevEx.sets.length ? `Last: ${prevEx.sets[0].reps} @ ${prevEx.sets[0].wt} lbs` : null
+          return (
+            <ExerciseCard
+              key={ei}
+              ex={ex}
+              ei={ei}
+              form={f}
+              prevNote={prevNote}
+              onSwap={() => { setSwapTarget({ ei }); setView('swap') }}
+              onUpdateSet={updateSet}
+              onToggleDone={toggleDone}
+              onAddSet={addSet}
+              onRemoveSet={removeSet}
+            />
+          )
+        })}
+
+        <div className="sec-label">Joint check-in</div>
+        {JOINTS.map(j => (
+          <div key={j} className="joint-row">
+            <div className="joint-name">{j}</div>
+            <div className="joint-btns">
+              {['ok','ache','pain'].map(v => (
+                <button
+                  key={v}
+                  className={`jbtn ${draft.joints[j] === v ? v : ''}`}
+                  onClick={() => setJoint(j, v)}
+                >{v === 'ok' ? 'Good' : v === 'ache' ? 'Ache' : 'Pain'}</button>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        <div className="sec-label">Session notes</div>
+        <textarea
+          className="notes-input"
+          placeholder="How did it feel? Any issues to note..."
+          value={draft.notes}
+          onChange={e => setDraft(prev => ({ ...prev, notes: e.target.value }))}
+          rows={3}
+        />
+
+        <button className="finish-btn" onClick={finishSession} disabled={saving}>
+          {saving ? '⏳ Saving...' : '✓ Finish & Save Session'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+function ExerciseCard({ ex, ei, form, prevNote, onSwap, onUpdateSet, onToggleDone, onAddSet, onRemoveSet }) {
+  const [showForm, setShowForm] = useState(false)
+  return (
+    <div className="ex-card">
+      <div className="ex-top">
+        <div className="ex-name">{ex.name}</div>
+        <button className="ex-swap-btn" onClick={onSwap} title="Swap exercise">⇄</button>
+      </div>
+      <div className="ex-sub">{ex.sets.length} sets · Rest {ex.rest}</div>
+      {prevNote && <div className="ex-prev">↺ {prevNote}</div>}
+      {form && (
+        <>
+          <button className="form-toggle-btn" onClick={() => setShowForm(!showForm)}>
+            ℹ Form and cues {showForm ? '▲' : '▼'}
+          </button>
+          {showForm && (
+            <div className="form-panel">
+              <div className="form-section">Setup</div>
+              {form.setup.map((c, i) => <div key={i} className="form-cue">{c}</div>)}
+              <div className="form-section">Movement</div>
+              {form.movement.map((c, i) => <div key={i} className="form-cue">{c}</div>)}
+              {form.note && <div className="form-note"><strong>Note:</strong> {form.note}</div>}
+              {form.rehab && <div className="form-note form-rehab"><strong>Bicep tendon:</strong> {form.rehab}</div>}
+            </div>
+          )}
+        </>
+      )}
+      <div className="sets-hdr">
+        <div className="col-h">Set</div>
+        <div className="col-h">Reps</div>
+        <div className="col-h">lbs</div>
+        <div className="col-h">Done</div>
+        <div className="col-h">-</div>
+      </div>
+      {ex.sets.map((s, si) => (
+        <div key={si} className="set-row">
+          <div className="set-n">{si + 1}</div>
+          <input className="set-inp" type="text" value={s.reps} onChange={e => onUpdateSet(ei, si, 'reps', e.target.value)} />
+          <input className="set-inp" type="text" value={s.wt} onChange={e => onUpdateSet(ei, si, 'wt', e.target.value)} />
+          <button className={`done-btn ${s.done ? 'on' : ''}`} onClick={() => onToggleDone(ei, si)}>{s.done ? '✓' : '○'}</button>
+          <button className="rm-btn" onClick={() => onRemoveSet(ei, si)}>−</button>
+        </div>
+      ))}
+      <button className="add-set-btn" onClick={() => onAddSet(ei)}>+ Add set</button>
+      <div className="set-rest">Rest {ex.rest} between sets</div>
+    </div>
+  )
+}

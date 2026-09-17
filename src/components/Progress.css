@@ -1,0 +1,22 @@
+.progress-page { padding: 12px; }
+.progress-title { font-size: 18px; font-weight: 700; margin-bottom: 14px; }
+.progress-loading { padding: 40px; text-align: center; color: #555; }
+.progress-section { background: #1a1a1a; border: 1px solid #222; border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+.progress-section-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+.progress-empty { font-size: 13px; color: #555; text-align: center; padding: 20px 0; }
+.exercise-select { width: 100%; padding: 10px 12px; background: #111; border: 1px solid #2a2a2a; border-radius: 8px; color: #e8e8e8; font-size: 13px; margin-bottom: 14px; appearance: none; }
+.chart-wrap { margin-bottom: 8px; }
+.chart-tooltip { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 8px 12px; }
+.tooltip-date { font-size: 11px; color: #888; margin-bottom: 2px; }
+.tooltip-val { font-size: 14px; font-weight: 600; color: #5b9cf6; }
+.weigh-add-row { display: grid; grid-template-columns: 1fr 80px 64px; gap: 8px; margin-bottom: 14px; }
+.weigh-date-inp, .weigh-wt-inp { padding: 9px 10px; background: #111; border: 1px solid #2a2a2a; border-radius: 8px; color: #e8e8e8; font-size: 13px; width: 100%; }
+.weigh-date-inp:focus, .weigh-wt-inp:focus { outline: none; border-color: #4488ff; }
+.weigh-add-btn { padding: 9px 6px; background: #0d1f3a; border: 1px solid #1e4080; border-radius: 8px; color: #5b9cf6; font-size: 13px; font-weight: 600; }
+.weigh-add-btn:disabled { opacity: 0.5; }
+.weigh-list { border-top: 1px solid #222; padding-top: 10px; }
+.weigh-row { display: flex; align-items: center; padding: 7px 0; border-bottom: 1px solid #1a1a1a; }
+.weigh-row:last-child { border-bottom: none; }
+.weigh-date { font-size: 13px; color: #aaa; flex: 1; }
+.weigh-wt { font-size: 14px; font-weight: 600; color: #30c060; margin-right: 12px; }
+.weigh-del { width: 24px; height: 24px; border: 1px solid #333; border-radius: 50%; background: transparent; color: #555; font-size: 16px; display: flex; align-items: center; justify-content: center; }
