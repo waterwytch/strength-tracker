@@ -49,6 +49,18 @@ export default function History({ userId }) {
             <div className="detail-joints">{jEntries.map(x => <span key={x.j} className={`h-joint ${x.v}`}>{x.j}: {x.v}</span>)}</div>
           </div>
         )}
+        {s.watch_data && (s.watch_data.time || s.watch_data.activeCal) && (
+          <div className="detail-watch">
+            <div className="sec-label">⌚ Apple Watch</div>
+            <div className="detail-watch-grid">
+              {s.watch_data.time && <div><div className="dw-v">{s.watch_data.time}</div><div className="dw-l">Time</div></div>}
+              {s.watch_data.activeCal && <div><div className="dw-v">{s.watch_data.activeCal}</div><div className="dw-l">Active cal</div></div>}
+              {s.watch_data.totalCal && <div><div className="dw-v">{s.watch_data.totalCal}</div><div className="dw-l">Total cal</div></div>}
+              {s.watch_data.avgHR && <div><div className="dw-v">{s.watch_data.avgHR}</div><div className="dw-l">Avg BPM</div></div>}
+              {s.watch_data.effort && s.watch_data.effort !== 'skipped' && <div><div className="dw-v">{s.watch_data.effort}</div><div className="dw-l">Effort</div></div>}
+            </div>
+          </div>
+        )}
         {s.notes && <div className="detail-notes">📝 {s.notes}</div>}
         <div className="sec-label">Exercises</div>
         {exList.map((ex, ei) => {

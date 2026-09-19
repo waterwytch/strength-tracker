@@ -74,3 +74,17 @@
 .swap-current-label { font-size: 11px; color: #444; }
 .swap-select-btn { font-size: 12px; color: #5b9cf6; border: 1px solid #1e4080; border-radius: 6px; padding: 5px 11px; background: transparent; }
 .loading-msg { padding: 40px; text-align: center; color: #555; }
+.watch-fields { background: #111; border: 1px solid #1e1e1e; border-radius: 10px; padding: 12px; margin-bottom: 8px; }
+.watch-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.watch-field { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.watch-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: .06em; }
+.watch-input { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 7px; color: #e8e8e8; font-size: 14px; padding: 8px 10px; width: 100%; }
+.watch-input:focus { outline: none; border-color: #4488ff; }
+.watch-select { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 7px; color: #e8e8e8; font-size: 14px; padding: 8px 10px; width: 100%; }
+.watch-select:focus { outline: none; border-color: #4488ff; }
+.success-watch { background: #0a1a2a; border: 1px solid #1a3555; border-radius: 10px; padding: 12px; margin-bottom: 16px; }
+.success-watch-title { font-size: 11px; color: #4488aa; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 10px; }
+.success-watch-grid { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 8px; }
+.success-watch-grid > div { display: flex; flex-direction: column; align-items: center; }
+.sw-v { font-size: 18px; font-weight: 700; color: #5baaf6; }
+.sw-l { font-size: 10px; color: #446; margin-top: 2px; }

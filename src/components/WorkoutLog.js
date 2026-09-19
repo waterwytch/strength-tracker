@@ -69,7 +69,7 @@ export default function WorkoutLog({ userId }) {
       }))
       return { name: ex.n, rest: ex.rest, sets }
     })
-    setDraft({ joints: {}, notes: '', exercises: exList })
+    setDraft({ joints: {}, notes: '', exercises: exList, watch: { time: '', activeCal: '', totalCal: '', avgHR: '', effort: '' } })
   }
 
   function updateSet(ei, si, field, value) {
@@ -144,7 +144,8 @@ export default function WorkoutLog({ userId }) {
       session_date: today,
       notes: draft.notes,
       joints: draft.joints,
-      exercises: draft.exercises
+      exercises: draft.exercises,
+      watch_data: draft.watch
     }).select().single()
     setSaving(false)
     if (error) { alert('Save failed: ' + error.message); return; }
@@ -186,6 +187,18 @@ export default function WorkoutLog({ userId }) {
             )
           })}
         </div>
+        {savedSession.watch_data && (savedSession.watch_data.time || savedSession.watch_data.activeCal) && (
+          <div className="success-watch">
+            <div className="success-watch-title">⌚ Apple Watch</div>
+            <div className="success-watch-grid">
+              {savedSession.watch_data.time && <div><span className="sw-v">{savedSession.watch_data.time}</span><span className="sw-l">Time</span></div>}
+              {savedSession.watch_data.activeCal && <div><span className="sw-v">{savedSession.watch_data.activeCal}</span><span className="sw-l">Active cal</span></div>}
+              {savedSession.watch_data.totalCal && <div><span className="sw-v">{savedSession.watch_data.totalCal}</span><span className="sw-l">Total cal</span></div>}
+              {savedSession.watch_data.avgHR && <div><span className="sw-v">{savedSession.watch_data.avgHR}</span><span className="sw-l">Avg BPM</span></div>}
+              {savedSession.watch_data.effort && savedSession.watch_data.effort !== 'skipped' && <div><span className="sw-v">{savedSession.watch_data.effort}</span><span className="sw-l">Effort</span></div>}
+            </div>
+          </div>
+        )}
         {savedSession.notes && <div className="success-notes">📝 {savedSession.notes}</div>}
         <button className="success-done-btn" onClick={afterSuccess}>✓ Done</button>
       </div>
@@ -291,6 +304,51 @@ export default function WorkoutLog({ userId }) {
             </div>
           </div>
         ))}
+
+        <div className="sec-label">⌚ Apple Watch data</div>
+        <div className="watch-fields">
+          <div className="watch-row">
+            <div className="watch-field">
+              <label className="watch-label">Workout time</label>
+              <input className="watch-input" type="text" placeholder="2:33:00"
+                value={draft.watch.time}
+                onChange={e => setDraft(prev => ({ ...prev, watch: { ...prev.watch, time: e.target.value } }))} />
+            </div>
+            <div className="watch-field">
+              <label className="watch-label">Active cal</label>
+              <input className="watch-input" type="number" placeholder="317"
+                value={draft.watch.activeCal}
+                onChange={e => setDraft(prev => ({ ...prev, watch: { ...prev.watch, activeCal: e.target.value } }))} />
+            </div>
+          </div>
+          <div className="watch-row">
+            <div className="watch-field">
+              <label className="watch-label">Total cal</label>
+              <input className="watch-input" type="number" placeholder="554"
+                value={draft.watch.totalCal}
+                onChange={e => setDraft(prev => ({ ...prev, watch: { ...prev.watch, totalCal: e.target.value } }))} />
+            </div>
+            <div className="watch-field">
+              <label className="watch-label">Avg heart rate</label>
+              <input className="watch-input" type="number" placeholder="92 BPM"
+                value={draft.watch.avgHR}
+                onChange={e => setDraft(prev => ({ ...prev, watch: { ...prev.watch, avgHR: e.target.value } }))} />
+            </div>
+          </div>
+          <div className="watch-field">
+            <label className="watch-label">Effort</label>
+            <select className="watch-select"
+              value={draft.watch.effort}
+              onChange={e => setDraft(prev => ({ ...prev, watch: { ...prev.watch, effort: e.target.value } }))}>
+              <option value="">— select —</option>
+              <option value="skipped">Skipped</option>
+              <option value="easy">Easy</option>
+              <option value="moderate">Moderate</option>
+              <option value="hard">Hard</option>
+              <option value="all out">All Out</option>
+            </select>
+          </div>
+        </div>
 
         <div className="sec-label">Session notes</div>
         <textarea

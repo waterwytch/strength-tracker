@@ -38,3 +38,8 @@
 .td-done { color: #30c060; font-weight: 600; }
 .td-skip { color: #333; }
 .sec-label { font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: .06em; margin: 14px 0 6px; }
+.detail-watch { margin-bottom: 14px; }
+.detail-watch-grid { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 10px; background: #0a1a2a; border: 1px solid #1a3555; border-radius: 10px; padding: 12px; }
+.detail-watch-grid > div { display: flex; flex-direction: column; align-items: center; }
+.dw-v { font-size: 20px; font-weight: 700; color: #5baaf6; }
+.dw-l { font-size: 10px; color: #446; margin-top: 2px; }
