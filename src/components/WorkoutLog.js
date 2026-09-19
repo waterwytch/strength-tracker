@@ -50,10 +50,8 @@ export default function WorkoutLog({ userId }) {
   }, [dayIdx, seeded, loadLastSession])
 
   useEffect(() => {
-    if (!lastSession) {
-      initDraft(dayIdx, null)
-    } else {
-      initDraft(dayIdx, lastSession)
+    if (lastSession !== undefined) {
+      initDraft(dayIdx, lastSession || null)
     }
   }, [lastSession, dayIdx])
 
@@ -310,13 +308,13 @@ export default function WorkoutLog({ userId }) {
           <div className="watch-row">
             <div className="watch-field">
               <label className="watch-label">Workout time</label>
-              <input className="watch-input" type="text" placeholder="2:33:00"
+              <input className="watch-input" type="text" placeholder="0:00:00"
                 value={draft.watch.time}
                 onChange={e => setDraft(prev => ({ ...prev, watch: { ...prev.watch, time: e.target.value } }))} />
             </div>
             <div className="watch-field">
               <label className="watch-label">Active cal</label>
-              <input className="watch-input" type="number" placeholder="317"
+              <input className="watch-input" type="number" placeholder="0"
                 value={draft.watch.activeCal}
                 onChange={e => setDraft(prev => ({ ...prev, watch: { ...prev.watch, activeCal: e.target.value } }))} />
             </div>
@@ -324,13 +322,13 @@ export default function WorkoutLog({ userId }) {
           <div className="watch-row">
             <div className="watch-field">
               <label className="watch-label">Total cal</label>
-              <input className="watch-input" type="number" placeholder="554"
+              <input className="watch-input" type="number" placeholder="0"
                 value={draft.watch.totalCal}
                 onChange={e => setDraft(prev => ({ ...prev, watch: { ...prev.watch, totalCal: e.target.value } }))} />
             </div>
             <div className="watch-field">
               <label className="watch-label">Avg heart rate</label>
-              <input className="watch-input" type="number" placeholder="92 BPM"
+              <input className="watch-input" type="number" placeholder="0"
                 value={draft.watch.avgHR}
                 onChange={e => setDraft(prev => ({ ...prev, watch: { ...prev.watch, avgHR: e.target.value } }))} />
             </div>
