@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { JOINTS } from '../lib/data'
-import './History_1.css'
+import './JamesHistory.css'
 
 export default function History({ userId }) {
   const [sessions, setSessions] = useState([])
@@ -61,6 +61,14 @@ export default function History({ userId }) {
       ...prev,
       joints: { ...prev.joints, [joint]: prev.joints[joint] === val ? null : val }
     }))
+  }
+
+  async function deleteSession() {
+    if (!window.confirm('Delete this session? This cannot be undone.')) return
+    const { error } = await supabase.from('sessions').delete().eq('id', selected.id)
+    if (error) { alert('Delete failed: ' + error.message); return; }
+    setSessions(prev => prev.filter(s => s.id !== selected.id))
+    setSelected(null)
   }
 
   async function saveEdit() {
@@ -203,6 +211,7 @@ export default function History({ userId }) {
             <div className="detail-sub">{new Date(s.session_date).toLocaleDateString('en-US', {weekday:'long',month:'long',day:'numeric'})}</div>
           </div>
           <button className="edit-session-btn" onClick={() => startEdit(s)}>✏️ Edit</button>
+          <button className="delete-session-btn" onClick={deleteSession}>🗑️</button>
         </div>
         <div className="detail-summ">
           <div><div className="detail-sv">{doneSets}/{totalSets}</div><div className="detail-sl">Sets done</div></div>
