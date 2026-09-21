@@ -7,29 +7,193 @@ export default function History({ userId }) {
   const [sessions, setSessions] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
+  const [editing, setEditing] = useState(false)
+  const [editDraft, setEditDraft] = useState(null)
+  const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    async function load() {
-      const { data } = await supabase
-        .from('sessions')
-        .select('*')
-        .eq('user_id', userId)
-        .order('session_date', { ascending: false })
-      setSessions(data || [])
-      setLoading(false)
-    }
-    load()
-  }, [userId])
+  async function load() {
+    const { data } = await supabase
+      .from('sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('session_date', { ascending: false })
+    setSessions(data || [])
+    setLoading(false)
+  }
+
+  useEffect(() => { load() }, [userId])
+
+  function startEdit(s) {
+    setEditDraft({
+      exercises: s.exercises.map(ex => ({
+        ...ex,
+        sets: ex.sets.map(st => ({ ...st }))
+      })),
+      joints: { ...(s.joints || {}) },
+      notes: s.notes || '',
+      watch: s.watch_data || { time: '', activeCal: '', totalCal: '', avgHR: '', effort: '' }
+    })
+    setEditing(true)
+  }
+
+  function updateEditSet(ei, si, field, value) {
+    setEditDraft(prev => ({
+      ...prev,
+      exercises: prev.exercises.map((ex, i) => i !== ei ? ex : {
+        ...ex,
+        sets: ex.sets.map((st, j) => j !== si ? st : { ...st, [field]: value })
+      })
+    }))
+  }
+
+  function toggleEditDone(ei, si) {
+    setEditDraft(prev => ({
+      ...prev,
+      exercises: prev.exercises.map((ex, i) => i !== ei ? ex : {
+        ...ex,
+        sets: ex.sets.map((st, j) => j !== si ? st : { ...st, done: !st.done })
+      })
+    }))
+  }
+
+  function setEditJoint(joint, val) {
+    setEditDraft(prev => ({
+      ...prev,
+      joints: { ...prev.joints, [joint]: prev.joints[joint] === val ? null : val }
+    }))
+  }
+
+  async function saveEdit() {
+    setSaving(true)
+    const { data, error } = await supabase.from('sessions').update({
+      exercises: editDraft.exercises,
+      joints: editDraft.joints,
+      notes: editDraft.notes,
+      watch_data: editDraft.watch
+    }).eq('id', selected.id).select().single()
+    setSaving(false)
+    if (error) { alert('Save failed: ' + error.message); return; }
+    setSelected(data)
+    setSessions(prev => prev.map(s => s.id === data.id ? data : s))
+    setEditing(false)
+    setEditDraft(null)
+  }
 
   if (loading) return <div className="hist-loading">Loading history...</div>
 
   if (selected) {
     const s = selected
     const exList = s.exercises || []
-    const doneSets = exList.reduce((a, ex) => a + ex.sets.filter(s => s.done).length, 0)
+    const doneSets = exList.reduce((a, ex) => a + ex.sets.filter(st => st.done).length, 0)
     const totalSets = exList.reduce((a, ex) => a + ex.sets.length, 0)
-    const doneEx = exList.filter(ex => ex.sets.some(s => s.done)).length
+    const doneEx = exList.filter(ex => ex.sets.some(st => st.done)).length
     const jEntries = JOINTS.map(j => ({ j, v: s.joints && s.joints[j] })).filter(x => x.v)
+
+    if (editing && editDraft) {
+      return (
+        <div className="hist-detail">
+          <div className="hist-detail-hdr">
+            <button className="back-btn" onClick={() => { setEditing(false); setEditDraft(null) }}>✕ Cancel</button>
+            <div>
+              <div className="detail-title">Editing session</div>
+              <div className="detail-sub">{new Date(s.session_date).toLocaleDateString('en-US', {weekday:'long',month:'long',day:'numeric'})}</div>
+            </div>
+            <button className="save-edit-btn" onClick={saveEdit} disabled={saving}>{saving ? '...' : 'Save'}</button>
+          </div>
+
+          <div className="sec-label">Exercises</div>
+          {editDraft.exercises.map((ex, ei) => (
+            <div key={ei} className="detail-ex">
+              <div className="detail-ex-hdr">
+                <div className="detail-ex-name">{ex.name}</div>
+              </div>
+              <table className="detail-table">
+                <thead><tr><th>Set</th><th>Reps</th><th>lbs</th><th>Done</th></tr></thead>
+                <tbody>
+                  {ex.sets.map((st, si) => (
+                    <tr key={si}>
+                      <td>{si + 1}</td>
+                      <td><input className="edit-cell-input" type="text" value={st.reps} onChange={e => updateEditSet(ei, si, 'reps', e.target.value)} /></td>
+                      <td><input className="edit-cell-input" type="text" value={st.wt} onChange={e => updateEditSet(ei, si, 'wt', e.target.value)} /></td>
+                      <td><button className={`edit-done-btn ${st.done ? 'done' : 'skip'}`} onClick={() => toggleEditDone(ei, si)}>{st.done ? '✓' : '—'}</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ))}
+
+          <div className="sec-label">Joint check-in</div>
+          {JOINTS.map(j => (
+            <div key={j} className="joint-row">
+              <div className="joint-name">{j}</div>
+              <div className="joint-btns">
+                {['ok','ache','pain'].map(v => (
+                  <button key={v} className={`jbtn ${editDraft.joints[j] === v ? v : ''}`} onClick={() => setEditJoint(j, v)}>
+                    {v === 'ok' ? 'Good' : v === 'ache' ? 'Ache' : 'Pain'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          <div className="sec-label">⌚ Apple Watch data</div>
+          <div className="watch-fields">
+            <div className="watch-row">
+              <div className="watch-field">
+                <label className="watch-label">Workout time</label>
+                <input className="watch-input" type="text" placeholder="0:00:00"
+                  value={editDraft.watch.time}
+                  onChange={e => setEditDraft(prev => ({ ...prev, watch: { ...prev.watch, time: e.target.value } }))} />
+              </div>
+              <div className="watch-field">
+                <label className="watch-label">Active cal</label>
+                <input className="watch-input" type="number" placeholder="0"
+                  value={editDraft.watch.activeCal}
+                  onChange={e => setEditDraft(prev => ({ ...prev, watch: { ...prev.watch, activeCal: e.target.value } }))} />
+              </div>
+            </div>
+            <div className="watch-row">
+              <div className="watch-field">
+                <label className="watch-label">Total cal</label>
+                <input className="watch-input" type="number" placeholder="0"
+                  value={editDraft.watch.totalCal}
+                  onChange={e => setEditDraft(prev => ({ ...prev, watch: { ...prev.watch, totalCal: e.target.value } }))} />
+              </div>
+              <div className="watch-field">
+                <label className="watch-label">Avg heart rate</label>
+                <input className="watch-input" type="number" placeholder="0"
+                  value={editDraft.watch.avgHR}
+                  onChange={e => setEditDraft(prev => ({ ...prev, watch: { ...prev.watch, avgHR: e.target.value } }))} />
+              </div>
+            </div>
+            <div className="watch-field">
+              <label className="watch-label">Effort</label>
+              <select className="watch-select"
+                value={editDraft.watch.effort}
+                onChange={e => setEditDraft(prev => ({ ...prev, watch: { ...prev.watch, effort: e.target.value } }))}>
+                <option value="">— select —</option>
+                <option value="skipped">Skipped</option>
+                <option value="easy">Easy</option>
+                <option value="moderate">Moderate</option>
+                <option value="hard">Hard</option>
+                <option value="all out">All Out</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="sec-label">Session notes</div>
+          <textarea className="notes-input" rows={3} value={editDraft.notes}
+            onChange={e => setEditDraft(prev => ({ ...prev, notes: e.target.value }))}
+            placeholder="How did it feel?" />
+
+          <button className="finish-btn" onClick={saveEdit} disabled={saving}>
+            {saving ? '⏳ Saving...' : '✓ Save Changes'}
+          </button>
+        </div>
+      )
+    }
+
     return (
       <div className="hist-detail">
         <div className="hist-detail-hdr">
@@ -38,6 +202,7 @@ export default function History({ userId }) {
             <div className="detail-title">Day {s.day_index + 1} — {s.day_title}</div>
             <div className="detail-sub">{new Date(s.session_date).toLocaleDateString('en-US', {weekday:'long',month:'long',day:'numeric'})}</div>
           </div>
+          <button className="edit-session-btn" onClick={() => startEdit(s)}>✏️ Edit</button>
         </div>
         <div className="detail-summ">
           <div><div className="detail-sv">{doneSets}/{totalSets}</div><div className="detail-sl">Sets done</div></div>
@@ -64,7 +229,7 @@ export default function History({ userId }) {
         {s.notes && <div className="detail-notes">📝 {s.notes}</div>}
         <div className="sec-label">Exercises</div>
         {exList.map((ex, ei) => {
-          const dc = ex.sets.filter(s => s.done).length
+          const dc = ex.sets.filter(st => st.done).length
           return (
             <div key={ei} className="detail-ex">
               <div className="detail-ex-hdr">
@@ -74,12 +239,12 @@ export default function History({ userId }) {
               <table className="detail-table">
                 <thead><tr><th>Set</th><th>Reps</th><th>lbs</th><th>Status</th></tr></thead>
                 <tbody>
-                  {ex.sets.map((s, si) => (
+                  {ex.sets.map((st, si) => (
                     <tr key={si}>
                       <td>{si + 1}</td>
-                      <td>{s.reps || '—'}</td>
-                      <td>{s.wt || '—'}</td>
-                      <td className={s.done ? 'td-done' : 'td-skip'}>{s.done ? '✓ Done' : '— Skip'}</td>
+                      <td>{st.reps || '—'}</td>
+                      <td>{st.wt || '—'}</td>
+                      <td className={st.done ? 'td-done' : 'td-skip'}>{st.done ? '✓ Done' : '— Skip'}</td>
                     </tr>
                   ))}
                 </tbody>
