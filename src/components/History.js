@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { JOINTS } from '../lib/data'
-import './History.css'
+import './History_1.css'
 
 export default function History({ userId }) {
   const [sessions, setSessions] = useState([])
