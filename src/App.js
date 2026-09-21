@@ -25,8 +25,8 @@ export default function App() {
 
   if (loading) return (
     <div className="loading-screen">
-      <div className="loading-icon">🏋️</div>
-      <div className="loading-text">Loading...</div>
+      <div className="loading-icon">💪</div>
+      <div className="loading-text">James</div>
     </div>
   )
 
