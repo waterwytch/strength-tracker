@@ -5,6 +5,7 @@ import WorkoutLog from './components/WorkoutLog'
 import History from './components/History'
 import Progress from './components/Progress'
 import Schedule from './components/Schedule'
+import Recovery from './components/Recovery'
 import './App.css'
 
 export default function App() {
@@ -39,13 +40,14 @@ export default function App() {
         {activeTab === 'history' && <History userId={session.user.id} />}
         {activeTab === 'progress' && <Progress userId={session.user.id} />}
         {activeTab === 'schedule' && <Schedule userId={session.user.id} />}
+        {activeTab === 'recovery' && <Recovery />}
       </div>
       <nav className="bottom-nav">
         {[
           { id: 'log', icon: '🏋️', label: 'Log' },
           { id: 'history', icon: '📋', label: 'History' },
           { id: 'progress', icon: '📈', label: 'Progress' },
-          { id: 'schedule', icon: '📅', label: 'Schedule' }
+          { id: 'recovery', icon: '🧠', label: 'Recovery' }
         ].map(tab => (
           <button
             key={tab.id}
