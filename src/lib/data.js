@@ -210,7 +210,8 @@ export const DAYS = [
     id: 0, label: 'Day 1', title: 'Lower body', dur: '~55 min', rehab: null,
     warmup: [
       { n: '90:90 Diaphragmatic Breathing', d: '1 set × 2 min — belly only, exhale slowly', tag: 'vagus' },
-      { n: 'Suspension Neck Stretch', d: '1 min each side — let gravity do the work', tag: 'mobility' },
+      { n: 'Leg Swings', d: '10 forward/back + 10 lateral each leg — hold something stable, swing from the hip, not the knee', tag: 'mobility' },
+      { n: 'Good Mornings (BW)', d: '2 × 10 — hands behind head, hinge at hip, soft knee, feel the hamstring load', tag: 'mobility' },
       { n: 'Glute Bridge Activation', d: '2 × 12 — squeeze glutes hard at top, 2-sec hold', tag: 'mobility' },
       { n: 'Ankle Circles + Dorsiflexion', d: '10 circles each direction + 10 knee-over-toe reps', tag: 'mobility' }
     ],
@@ -248,9 +249,10 @@ export const DAYS = [
     id: 2, label: 'Day 3', title: 'Whole body', dur: '~50 min', rehab: null,
     warmup: [
       { n: '90:90 Diaphragmatic Breathing', d: '1 set × 2 min — belly only, exhale slowly', tag: 'vagus' },
+      { n: 'Leg Swings', d: '10 forward/back + 10 lateral each leg — swing from the hip, keep the knee relaxed', tag: 'mobility' },
+      { n: 'Good Mornings (BW)', d: '2 × 10 — hands behind head, hinge at hip, chest tall, feel the posterior chain load', tag: 'mobility' },
       { n: 'Cat-Cow Flow', d: '10 slow rounds — let the breath drive the movement', tag: 'mobility' },
-      { n: 'World\'s Greatest Stretch', d: '5 reps each side — lunge + thoracic rotation + hip hinge', tag: 'mobility' },
-      { n: 'Figure-4 Glute Stretch', d: '60 sec each side — flex top foot, breathe into the stretch', tag: 'mobility' }
+      { n: 'World\'s Greatest Stretch', d: '5 reps each side — lunge + thoracic rotation + hip hinge', tag: 'mobility' }
     ],
     exercises: [
       { n: 'Kettlebell sumo deadlift', sets: 4, reps: '8', wt: '35', rest: '2 min' },
