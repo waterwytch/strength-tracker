@@ -11,7 +11,11 @@
 .rehab-note { background: #1a1000; border: 1px solid #5a3800; color: #cc8800; border-radius: 7px; padding: 7px 10px; font-size: 11px; line-height: 1.5; margin-bottom: 10px; }
 .sec-label { font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: .06em; margin: 14px 0 6px; }
 .wu-card { background: #1a1a1a; border: 1px solid #222; border-radius: 8px; padding: 9px 11px; margin-bottom: 6px; }
-.wu-name { font-size: 13px; font-weight: 500; margin-bottom: 1px; }
+.wu-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 2px; }
+.wu-tag { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
+.wu-tag.vagus { background: #1a1040; color: #9080ff; border: 1px solid #5040aa; }
+.wu-tag.mobility { background: #0a2518; color: #30c060; border: 1px solid #1a5030; }
+.wu-name { font-size: 13px; font-weight: 500; }
 .wu-desc { font-size: 12px; color: #666; }
 .ex-card { background: #1a1a1a; border: 1px solid #222; border-radius: 10px; padding: 12px; margin-bottom: 9px; }
 .ex-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; }

@@ -132,6 +132,11 @@ export default function WorkoutLog({ userId }) {
   }
 
   async function finishSession() {
+    const incompleteSets = draft.exercises.reduce((a, ex) => a + ex.sets.filter(s => !s.done).length, 0)
+    if (incompleteSets > 0) {
+      const go = window.confirm(`You have ${incompleteSets} incomplete set${incompleteSets > 1 ? 's' : ''}. Save anyway?`)
+      if (!go) return
+    }
     setSaving(true)
     const D = DAYS[dayIdx]
     const today = new Date().toISOString().split('T')[0]
@@ -261,7 +266,10 @@ export default function WorkoutLog({ userId }) {
         <div className="sec-label">Warm-up</div>
         {D.warmup.map((w, i) => (
           <div key={i} className="wu-card">
-            <div className="wu-name">{w.n}</div>
+            <div className="wu-card-top">
+              <div className="wu-name">{w.n}</div>
+              {w.tag && <span className={`wu-tag ${w.tag}`}>{w.tag === 'vagus' ? '🧠 Vagus' : '🧘 Mobility'}</span>}
+            </div>
             <div className="wu-desc">{w.d}</div>
           </div>
         ))}
