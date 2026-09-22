@@ -3,8 +3,13 @@ import { supabase } from '../lib/supabase'
 import { DAYS, JOINTS, FORM, BANK, SEED_SESSIONS } from '../lib/data'
 import './WorkoutLog.css'
 
+const WALK_TABS = [
+  { id: 'walk1', label: 'Walk 1', icon: '🚶‍♀️', cue: 'Easy pace — you should be able to hold a conversation. Focus on nasal breathing.' },
+  { id: 'walk2', label: 'Walk 2', icon: '🚶‍♀️', cue: 'Easy pace — you should be able to hold a conversation. Focus on nasal breathing.' }
+]
+
 export default function WorkoutLog({ userId }) {
-  const [dayIdx, setDayIdx] = useState(0)
+  const [dayIdx, setDayIdx] = useState(0) // 0-2 = strength days, 3-4 = walks
   const [draft, setDraft] = useState(null)
   const [lastSession, setLastSession] = useState(null)
   const [view, setView] = useState('log') // log | success | swap
@@ -252,10 +257,58 @@ export default function WorkoutLog({ userId }) {
               {d.label}<br /><span className="day-tab-sub">{d.title.split(' ')[0]}</span>
             </button>
           ))}
+          {WALK_TABS.map((w, i) => (
+            <button key={`w${i}`} className={`day-tab walk-tab ${dayIdx === DAYS.length + i ? 'active' : ''}`} onClick={() => setDayIdx(DAYS.length + i)}>
+              {w.icon}<br /><span className="day-tab-sub">Walk {i + 1}</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="wl-body">
+      {dayIdx >= DAYS.length && (() => {
+        const w = WALK_TABS[dayIdx - DAYS.length]
+        return (
+          <div className="wl-body">
+            <div className="sess-title">Morning Walk {dayIdx - DAYS.length + 1}</div>
+            <div className="sess-meta">{new Date().toLocaleDateString('en-US', {weekday:'long',month:'long',day:'numeric'})}</div>
+            <div className="walk-view">
+              <div className="walk-icon-big">🚶‍♀️</div>
+              <div className="walk-tip">{w.cue}</div>
+
+              <div className="watch-note walk-watch-note">
+                <div className="walk-watch-title">⌚ Start on your Apple Watch</div>
+                <div className="walk-watch-row">
+                  <div className="walk-watch-option">
+                    <div className="walk-watch-label">Neighborhood walk</div>
+                    <div className="walk-watch-steps">Workout app → <strong>Outdoor Walk</strong></div>
+                  </div>
+                  <div className="walk-watch-divider">or</div>
+                  <div className="walk-watch-option">
+                    <div className="walk-watch-label">Trail / hike</div>
+                    <div className="walk-watch-steps">Workout app → <strong>Hiking</strong></div>
+                  </div>
+                </div>
+                <div className="walk-watch-sub">Tracks pace, distance, calories, and heart rate zone — all count toward your Move ring.</div>
+              </div>
+
+              <div className="sec-label" style={{marginTop: 16}}>Why it matters</div>
+              <div className="walk-benefits">
+                <div className="walk-benefit-item">🩸 <span>Lowers fasting glucose — a 20 min walk after waking meaningfully improves insulin sensitivity</span></div>
+                <div className="walk-benefit-item">🧠 <span>Activates vagus nerve — nasal breathing + steady rhythm shifts you into parasympathetic state</span></div>
+                <div className="walk-benefit-item">💪 <span>Active recovery — promotes blood flow to muscles worked in your last strength session</span></div>
+                <div className="walk-benefit-item">🔥 <span>Burns fat — low-intensity cardio targets fat oxidation without touching muscle</span></div>
+              </div>
+              <div className="sec-label" style={{marginTop: 16}}>Walk cues</div>
+              <div className="wu-card"><div className="wu-name">Posture</div><div className="wu-desc">Shoulders back and down, gaze forward — not at your phone. Chin parallel to the ground.</div></div>
+              <div className="wu-card"><div className="wu-name">Breathing</div><div className="wu-desc">Nasal breathing only if possible. Exhale is longer than inhale. Hum on the exhale to activate the vagus nerve.</div></div>
+              <div className="wu-card"><div className="wu-name">Pace</div><div className="wu-desc">Conversational pace — 3 to 3.5 mph. You should be able to speak in full sentences. This is recovery, not cardio.</div></div>
+              <div className="wu-card"><div className="wu-name">Duration</div><div className="wu-desc">20–45 minutes. Consistency beats duration — a 20 min walk every non-lifting day beats a 60 min walk once a week.</div></div>
+            </div>
+          </div>
+        )
+      })()}
+
+      {dayIdx < DAYS.length && <div className="wl-body">
         <div className="sess-title">{D.title}</div>
         <div className="sess-meta">
           {new Date().toLocaleDateString('en-US', {weekday:'long',month:'long',day:'numeric'})}
@@ -368,7 +421,7 @@ export default function WorkoutLog({ userId }) {
         <button className="finish-btn" onClick={finishSession} disabled={saving}>
           {saving ? '⏳ Saving...' : '✓ Finish & Save Session'}
         </button>
-      </div>
+      </div>}
     </div>
   )
 }
