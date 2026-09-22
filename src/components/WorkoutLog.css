@@ -92,3 +92,21 @@
 .success-watch-grid > div { display: flex; flex-direction: column; align-items: center; }
 .sw-v { font-size: 18px; font-weight: 700; color: #5baaf6; }
 .sw-l { font-size: 10px; color: #446; margin-top: 2px; }
+.walk-tab.active { border-color: #30c060 !important; color: #30c060 !important; background: #0a1a10 !important; }
+.walk-view { padding: 20px 0; }
+.walk-icon-big { font-size: 56px; text-align: center; margin-bottom: 12px; }
+.walk-tip { font-size: 13px; color: #888; line-height: 1.6; background: #1a1a1a; border: 1px solid #222; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; }
+.walk-benefits-title { font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+.walk-benefits { display: flex; flex-direction: column; gap: 6px; }
+.walk-benefit-item { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: #ccc; line-height: 1.5; background: #1a1a1a; border: 1px solid #1e1e1e; border-radius: 8px; padding: 9px 12px; }
+.walk-benefit-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.walk-benefit-text strong { color: #e8e8e8; display: block; margin-bottom: 1px; }
+.walk-watch-note { margin-bottom: 16px; }
+.walk-watch-title { font-size: 12px; font-weight: 700; color: #5b9cf6; margin-bottom: 10px; }
+.walk-watch-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.walk-watch-option { flex: 1; background: #0d1a2a; border: 1px solid #1a3555; border-radius: 8px; padding: 9px 11px; }
+.walk-watch-label { font-size: 11px; color: #5b9cf6; font-weight: 600; margin-bottom: 3px; }
+.walk-watch-steps { font-size: 12px; color: #ccc; }
+.walk-watch-steps strong { color: #e8e8e8; }
+.walk-watch-divider { font-size: 11px; color: #444; flex-shrink: 0; }
+.walk-watch-sub { font-size: 11px; color: #557; line-height: 1.4; }
