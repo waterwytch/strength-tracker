@@ -17,6 +17,9 @@ export default function WorkoutLog({ userId }) {
   const [savedSession, setSavedSession] = useState(null)
   const [saving, setSaving] = useState(false)
   const [seeded, setSeeded] = useState(false)
+  const [walkLog, setWalkLog] = useState({ duration: '', calories: '', hr: '', pace: '', distance: '' })
+  const [walkSaved, setWalkSaved] = useState(false)
+  const [walkSaving, setWalkSaving] = useState(false)
 
   const loadLastSession = useCallback(async (idx) => {
     const { data } = await supabase
@@ -244,6 +247,26 @@ export default function WorkoutLog({ userId }) {
     )
   }
 
+  async function saveWalk() {
+    setWalkSaving(true)
+    await supabase.from('walk_logs').insert({
+      user_id: userId,
+      walk_date: new Date().toISOString().split('T')[0],
+      walk_index: dayIdx - DAYS.length,
+      duration_min: walkLog.duration || null,
+      active_cal: walkLog.calories || null,
+      avg_hr: walkLog.hr || null,
+      avg_pace: walkLog.pace || null,
+      distance_mi: walkLog.distance || null,
+    })
+    setWalkSaving(false)
+    setWalkSaved(true)
+    setTimeout(() => {
+      setWalkSaved(false)
+      setWalkLog({ duration: '', calories: '', hr: '', pace: '', distance: '' })
+    }, 2500)
+  }
+
   if (!draft) return <div className="loading-msg">Loading...</div>
 
   const prevDate = lastSession ? new Date(lastSession.session_date).toLocaleDateString('en-US', {weekday:'short',month:'short',day:'numeric'}) : null
@@ -269,44 +292,49 @@ export default function WorkoutLog({ userId }) {
         </div>
       </div>
 
-      {dayIdx >= DAYS.length && (() => {
-        const w = WALK_TABS[dayIdx - DAYS.length]
-        return (
-          <div className="wl-body">
-            <div className="sess-title">Morning Walk {dayIdx - DAYS.length + 1}</div>
-            <div className="sess-meta">{new Date().toLocaleDateString('en-US', {weekday:'long',month:'long',day:'numeric'})}</div>
-            <div className="walk-view">
-              <div className="walk-icon-big">🚶‍♀️</div>
-              <div className="walk-tip">{w.cue}</div>
-
-              <div className="sec-label" style={{marginTop: 16}}>Why it matters</div>
-              <div className="walk-benefits">
-                <div className="walk-benefit-item">
-                  <div className="walk-benefit-icon">🩸</div>
-                  <div className="walk-benefit-text"><strong>Insulin sensitivity</strong> — a 20 min walk after waking meaningfully lowers fasting glucose</div>
+      {dayIdx >= DAYS.length && (
+        <div className="wl-body">
+          <div className="sess-title">Walk {dayIdx - DAYS.length + 1}</div>
+          <div className="sess-meta">{new Date().toLocaleDateString('en-US', {weekday:'long',month:'long',day:'numeric'})}</div>
+          {walkSaved ? (
+            <div className="walk-saved">✓ Walk logged</div>
+          ) : (
+            <div className="walk-log-form">
+              <div className="sec-label" style={{marginTop: 8}}>Log from your watch</div>
+              <div className="walk-fields">
+                <div className="walk-field">
+                  <div className="walk-label">Duration (min)</div>
+                  <input className="walk-input" type="number" placeholder="e.g. 25" value={walkLog.duration}
+                    onChange={e => setWalkLog(p => ({...p, duration: e.target.value}))} />
                 </div>
-                <div className="walk-benefit-item">
-                  <div className="walk-benefit-icon">🧠</div>
-                  <div className="walk-benefit-text"><strong>Vagus nerve</strong> — nasal breathing + steady rhythm shifts you into parasympathetic state</div>
+                <div className="walk-field">
+                  <div className="walk-label">Distance (mi)</div>
+                  <input className="walk-input" type="number" step="0.01" placeholder="e.g. 1.2" value={walkLog.distance}
+                    onChange={e => setWalkLog(p => ({...p, distance: e.target.value}))} />
                 </div>
-                <div className="walk-benefit-item">
-                  <div className="walk-benefit-icon">💪</div>
-                  <div className="walk-benefit-text"><strong>Active recovery</strong> — promotes blood flow to muscles worked in your last strength session</div>
+                <div className="walk-field">
+                  <div className="walk-label">Active cal</div>
+                  <input className="walk-input" type="number" placeholder="e.g. 180" value={walkLog.calories}
+                    onChange={e => setWalkLog(p => ({...p, calories: e.target.value}))} />
                 </div>
-                <div className="walk-benefit-item">
-                  <div className="walk-benefit-icon">🔥</div>
-                  <div className="walk-benefit-text"><strong>Fat oxidation</strong> — low-intensity cardio targets fat without touching muscle</div>
+                <div className="walk-field">
+                  <div className="walk-label">Avg HR (bpm)</div>
+                  <input className="walk-input" type="number" placeholder="e.g. 105" value={walkLog.hr}
+                    onChange={e => setWalkLog(p => ({...p, hr: e.target.value}))} />
+                </div>
+                <div className="walk-field">
+                  <div className="walk-label">Avg pace (min/mi)</div>
+                  <input className="walk-input" type="text" placeholder="e.g. 18:30" value={walkLog.pace}
+                    onChange={e => setWalkLog(p => ({...p, pace: e.target.value}))} />
                 </div>
               </div>
-              <div className="sec-label" style={{marginTop: 16}}>Walk cues</div>
-              <div className="wu-card"><div className="wu-name">Posture</div><div className="wu-desc">Shoulders back and down, gaze forward — not at your phone. Chin parallel to the ground.</div></div>
-              <div className="wu-card"><div className="wu-name">Breathing</div><div className="wu-desc">Nasal breathing only if possible. Exhale is longer than inhale. Hum on the exhale to activate the vagus nerve.</div></div>
-              <div className="wu-card"><div className="wu-name">Pace</div><div className="wu-desc">Conversational pace — 3 to 3.5 mph. You should be able to speak in full sentences. This is recovery, not cardio.</div></div>
-              <div className="wu-card"><div className="wu-name">Duration</div><div className="wu-desc">20–45 minutes. Consistency beats duration — a 20 min walk every non-lifting day beats a 60 min walk once a week.</div></div>
+              <button className="finish-btn" onClick={saveWalk} disabled={walkSaving || !Object.values(walkLog).some(v => v)}>
+                {walkSaving ? 'Saving…' : '✓ Log walk'}
+              </button>
             </div>
-          </div>
-        )
-      })()}
+          )}
+        </div>
+      )}
 
       {dayIdx < DAYS.length && <div className="wl-body">
         <div className="sess-title">{D.title}</div>
