@@ -13,6 +13,14 @@ export default function App() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('home')
+  const [logDay, setLogDay] = useState(0)
+  const [logKey, setLogKey] = useState(0)
+
+  function navigateToLog(dayIdx) {
+    setLogDay(dayIdx)
+    setLogKey(k => k + 1) // force remount every time
+    setActiveTab('log')
+  }
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -37,8 +45,8 @@ export default function App() {
   return (
     <div className="app">
       <div className="app-content">
-        {activeTab === 'home' && <Home userId={session.user.id} onNavigate={setActiveTab} />}
-        {activeTab === 'log' && <WorkoutLog userId={session.user.id} />}
+        {activeTab === 'home' && <Home userId={session.user.id} onNavigate={setActiveTab} onStartSession={navigateToLog} />}
+        {activeTab === 'log' && <WorkoutLog key={logKey} userId={session.user.id} initialDay={logDay} />}
         {activeTab === 'history' && <History userId={session.user.id} />}
         {activeTab === 'progress' && <Progress userId={session.user.id} />}
         {activeTab === 'schedule' && <Schedule userId={session.user.id} />}
