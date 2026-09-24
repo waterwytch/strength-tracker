@@ -20,6 +20,39 @@ export default function WorkoutLog({ userId }) {
   const [walkLog, setWalkLog] = useState({ duration: '', calories: '', hr: '', pace: '', distance: '', elevation: '' })
   const [walkSaved, setWalkSaved] = useState(false)
   const [walkSaving, setWalkSaving] = useState(false)
+  const [draftRestored, setDraftRestored] = useState(false)
+  const autoSaveTimer = React.useRef(null)
+
+  // Auto-save draft to Supabase
+  const saveDraft = useCallback(async (idx, draftData) => {
+    if (idx >= DAYS.length || !draftData) return
+    await supabase.from('session_drafts').upsert({
+      user_id: userId,
+      day_index: idx,
+      draft: draftData,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id,day_index' })
+  }, [userId])
+
+  // Load saved draft from Supabase
+  const loadDraft = useCallback(async (idx) => {
+    if (idx >= DAYS.length) return null
+    const { data } = await supabase
+      .from('session_drafts')
+      .select('draft, updated_at')
+      .eq('user_id', userId)
+      .eq('day_index', idx)
+      .single()
+    return data || null
+  }, [userId])
+
+  // Clear draft after finishing
+  const clearDraft = useCallback(async (idx) => {
+    await supabase.from('session_drafts')
+      .delete()
+      .eq('user_id', userId)
+      .eq('day_index', idx)
+  }, [userId])
 
   const loadLastSession = useCallback(async (idx) => {
     const { data } = await supabase
@@ -59,9 +92,32 @@ export default function WorkoutLog({ userId }) {
 
   useEffect(() => {
     if (lastSession !== undefined) {
-      initDraft(dayIdx, lastSession || null)
+      // Check for a saved draft first
+      if (dayIdx < DAYS.length) {
+        loadDraft(dayIdx).then(saved => {
+          if (saved && saved.draft) {
+            setDraft(saved.draft)
+            setDraftRestored(true)
+            setTimeout(() => setDraftRestored(false), 3000)
+          } else {
+            initDraft(dayIdx, lastSession || null)
+          }
+        })
+      } else {
+        initDraft(dayIdx, lastSession || null)
+      }
     }
   }, [lastSession, dayIdx])
+
+  // Auto-save draft 2 seconds after any change
+  useEffect(() => {
+    if (!draft || dayIdx >= DAYS.length) return
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
+    autoSaveTimer.current = setTimeout(() => {
+      saveDraft(dayIdx, draft)
+    }, 2000)
+    return () => clearTimeout(autoSaveTimer.current)
+  }, [draft, dayIdx, saveDraft])
 
   function initDraft(idx, last) {
     if (idx >= DAYS.length) return
@@ -161,6 +217,7 @@ export default function WorkoutLog({ userId }) {
     }).select().single()
     setSaving(false)
     if (error) { alert('Save failed: ' + error.message); return; }
+    await clearDraft(dayIdx)
     setSavedSession(data)
     setView('success')
   }
@@ -345,6 +402,9 @@ export default function WorkoutLog({ userId }) {
       )}
 
       {dayIdx < DAYS.length && <div className="wl-body">
+        {draftRestored && (
+          <div className="draft-restored-banner">↩ Session restored — pick up where you left off</div>
+        )}
         <div className="sess-title">{D.title}</div>
         <div className="sess-meta">
           {new Date().toLocaleDateString('en-US', {weekday:'long',month:'long',day:'numeric'})}
