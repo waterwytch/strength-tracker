@@ -81,12 +81,70 @@ function formatNextDay(item) {
   return { weekday, time: `${h12}:${m.toString().padStart(2,'0')} ${ampm}`, daysUntil: item.daysUntil }
 }
 
+function getTodayRecommendation(recentSessions) {
+  // recentSessions: last 7 days, sorted newest first
+  if (!recentSessions || !recentSessions.length) {
+    return { type: 'strength', label: 'Strength day', icon: '🏋️', detail: 'Day 1 — Lower Body', advice: 'No recent sessions logged — good day to get started.' }
+  }
+
+  const today = new Date().toISOString().split('T')[0]
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+
+  const todayDone = recentSessions.find(s => s.session_date === today)
+  const yesterdaySession = recentSessions.find(s => s.session_date === yesterday)
+
+  // Count last 7 days
+  const last7 = recentSessions.filter(s => {
+    const d = new Date(s.session_date)
+    return (Date.now() - d.getTime()) < 7 * 86400000
+  })
+
+  // If already worked out today
+  if (todayDone) {
+    return { type: 'done', label: 'Done for today', icon: '✅', detail: null, advice: 'You already logged a session today. Rest and recover.' }
+  }
+
+  // If 3+ sessions in last 4 days, suggest rest
+  const last4 = recentSessions.filter(s => {
+    const d = new Date(s.session_date)
+    return (Date.now() - d.getTime()) < 4 * 86400000
+  })
+  if (last4.length >= 3) {
+    return { type: 'rest', label: 'Rest day', icon: '😴', detail: null, advice: 'You\'ve hit 3 sessions in the last 4 days. Your body needs this.' }
+  }
+
+  // Check last walk — if it's been 3+ days since a walk (walk sessions have day_index >= 3)
+  const lastWalk = recentSessions.find(s => s.day_index >= 3)
+  const lastStrength = recentSessions.find(s => s.day_index < 3)
+
+  if (lastWalk) {
+    const daysSinceWalk = Math.floor((Date.now() - new Date(lastWalk.session_date).getTime()) / 86400000)
+    if (daysSinceWalk >= 3 && lastStrength && Math.floor((Date.now() - new Date(lastStrength.session_date).getTime()) / 86400000) <= 1) {
+      return { type: 'walk', label: 'Walk day', icon: '🚶‍♀️', detail: 'Outdoor Walk', advice: `Last walk was ${daysSinceWalk} days ago — good day to get outside.` }
+    }
+  }
+
+  // Figure out which strength day is next
+  const lastStrengthIdx = lastStrength ? lastStrength.day_index : -1
+  const nextDayIdx = (lastStrengthIdx + 1) % 3
+  const dayNames = ['Lower Body', 'Upper Body', 'Whole Body']
+
+  return {
+    type: 'strength',
+    label: 'Strength day',
+    icon: '🏋️',
+    detail: `Day ${nextDayIdx + 1} — ${dayNames[nextDayIdx]}`,
+    advice: lastStrength ? `Last session was ${dayNames[lastStrengthIdx]} — ${dayNames[nextDayIdx]} is next.` : 'Time to train.'
+  }
+}
+
 export default function Home({ userId, onNavigate }) {
   const [weather, setWeather] = useState(null)
   const [weatherErr, setWeatherErr] = useState(false)
   const [schedule, setSchedule] = useState([])
   const [stats, setStats] = useState({ total: 0, streak: 0, thisMonth: 0 })
   const [nextSession, setNextSession] = useState(null)
+  const [todayRec, setTodayRec] = useState(null)
 
   useEffect(() => {
     // Load schedule
@@ -108,7 +166,10 @@ export default function Home({ userId, onNavigate }) {
         .eq('user_id', userId)
         .order('session_date', { ascending: false })
 
-      if (!data || !data.length) return
+      if (!data || !data.length) {
+        setTodayRec(getTodayRecommendation([]))
+        return
+      }
 
       const total = data.length
       const now = new Date()
@@ -118,16 +179,19 @@ export default function Home({ userId, onNavigate }) {
       }).length
 
       // streak: consecutive weeks with at least 1 session
-      let streak = 0
       const weekSet = new Set()
       data.forEach(s => {
         const d = new Date(s.session_date)
         const week = `${d.getFullYear()}-${Math.floor(d.getDate() / 7)}-${d.getMonth()}`
         weekSet.add(week)
       })
-      streak = weekSet.size
+      const streak = weekSet.size
 
       setStats({ total, thisMonth, streak })
+
+      // Today's recommendation from recent sessions
+      const recent = data.slice(0, 14) // last 14 sessions
+      setTodayRec(getTodayRecommendation(recent))
     }
 
     // Fetch weather via GPS
@@ -192,6 +256,48 @@ export default function Home({ userId, onNavigate }) {
           <div className="weather-loading">Fetching weather...</div>
         )}
       </div>
+
+      {/* Today card */}
+      {todayRec && (
+        <div className={`home-card today-card today-${todayRec.type}`}>
+          <div className="today-top">
+            <span className="today-icon">{todayRec.icon}</span>
+            <div className="today-text">
+              <div className="today-label">{todayRec.label}</div>
+              {todayRec.detail && <div className="today-detail">{todayRec.detail}</div>}
+            </div>
+            {todayRec.type === 'strength' && (
+              <button className="today-go-btn" onClick={() => onNavigate('log')}>Start →</button>
+            )}
+            {todayRec.type === 'walk' && (
+              <button className="today-go-btn" onClick={() => onNavigate('log')}>Log →</button>
+            )}
+          </div>
+          <div className="today-advice">{todayRec.advice}</div>
+          {todayRec.type !== 'rest' && todayRec.type !== 'done' && (
+            <div className="today-fuel">
+              <div className="today-fuel-title">Before you go</div>
+              <div className="today-fuel-items">
+                <span>🍌 Banana</span>
+                <span>💧 Creatine + Mio in your water</span>
+              </div>
+              <div className="today-fuel-title" style={{marginTop: 6}}>After — with breakfast</div>
+              <div className="today-fuel-items">
+                <span>🟢 IM8 · L-theanine · Omega 3</span>
+                <span>☕ Espresso tonic on the way home</span>
+              </div>
+            </div>
+          )}
+          {todayRec.type === 'rest' && (
+            <div className="today-fuel">
+              <div className="today-fuel-title">With breakfast</div>
+              <div className="today-fuel-items">
+                <span>🟢 IM8 · L-theanine · Omega 3</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Next session */}
       <div className="home-card next-card">
