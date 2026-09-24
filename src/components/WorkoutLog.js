@@ -125,9 +125,13 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
     const exList = D.exercises.map((ex, ei) => {
       const prevSets = last && last.exercises && last.exercises[ei] && last.exercises[ei].name === ex.n
         ? last.exercises[ei].sets : null
-      const sets = Array.from({ length: ex.sets }, (_, si) => ({
-        reps: prevSets && prevSets[si] ? prevSets[si].reps : ex.reps,
-        wt: prevSets && prevSets[si] ? prevSets[si].wt : ex.wt,
+      // Use previous session's set count if available, otherwise default from program
+      const setCount = prevSets ? prevSets.length : ex.sets
+      // Use last set's values as the fill-forward default
+      const lastPrev = prevSets && prevSets.length > 0 ? prevSets[prevSets.length - 1] : null
+      const sets = Array.from({ length: setCount }, (_, si) => ({
+        reps: prevSets && prevSets[si] ? prevSets[si].reps : (lastPrev ? lastPrev.reps : ex.reps),
+        wt: prevSets && prevSets[si] ? prevSets[si].wt : (lastPrev ? lastPrev.wt : ex.wt),
         done: false
       }))
       return { name: ex.n, rest: ex.rest, sets }
