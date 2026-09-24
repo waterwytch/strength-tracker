@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
 import Login from './components/Login'
+import Home from './components/Home'
 import WorkoutLog from './components/WorkoutLog'
 import History from './components/History'
 import Progress from './components/Progress'
@@ -11,7 +12,7 @@ import './App.css'
 export default function App() {
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('log')
+  const [activeTab, setActiveTab] = useState('home')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -36,6 +37,7 @@ export default function App() {
   return (
     <div className="app">
       <div className="app-content">
+        {activeTab === 'home' && <Home userId={session.user.id} onNavigate={setActiveTab} />}
         {activeTab === 'log' && <WorkoutLog userId={session.user.id} />}
         {activeTab === 'history' && <History userId={session.user.id} />}
         {activeTab === 'progress' && <Progress userId={session.user.id} />}
@@ -44,8 +46,8 @@ export default function App() {
       </div>
       <nav className="bottom-nav">
         {[
+          { id: 'home', icon: '🏠', label: 'Home' },
           { id: 'log', icon: '🏋️', label: 'Log' },
-          { id: 'history', icon: '📋', label: 'History' },
           { id: 'progress', icon: '📈', label: 'Progress' },
           { id: 'recovery', icon: '🧠', label: 'Recovery' }
         ].map(tab => (
