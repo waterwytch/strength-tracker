@@ -51,7 +51,7 @@ export default function WorkoutLog({ userId }) {
   }, [seedSessions])
 
   useEffect(() => {
-    if (seeded) loadLastSession(dayIdx)
+    if (seeded && dayIdx < DAYS.length) loadLastSession(dayIdx)
   }, [dayIdx, seeded, loadLastSession])
 
   useEffect(() => {
@@ -61,6 +61,7 @@ export default function WorkoutLog({ userId }) {
   }, [lastSession, dayIdx])
 
   function initDraft(idx, last) {
+    if (idx >= DAYS.length) return
     const D = DAYS[idx]
     const exList = D.exercises.map((ex, ei) => {
       const prevSets = last && last.exercises && last.exercises[ei] && last.exercises[ei].name === ex.n
