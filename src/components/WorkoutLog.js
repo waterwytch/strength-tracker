@@ -280,10 +280,22 @@ export default function WorkoutLog({ userId }) {
 
               <div className="sec-label" style={{marginTop: 16}}>Why it matters</div>
               <div className="walk-benefits">
-                <div className="walk-benefit-item">🩸 <span>Lowers fasting glucose — a 20 min walk after waking meaningfully improves insulin sensitivity</span></div>
-                <div className="walk-benefit-item">🧠 <span>Activates vagus nerve — nasal breathing + steady rhythm shifts you into parasympathetic state</span></div>
-                <div className="walk-benefit-item">💪 <span>Active recovery — promotes blood flow to muscles worked in your last strength session</span></div>
-                <div className="walk-benefit-item">🔥 <span>Burns fat — low-intensity cardio targets fat oxidation without touching muscle</span></div>
+                <div className="walk-benefit-item">
+                  <div className="walk-benefit-icon">🩸</div>
+                  <div className="walk-benefit-text"><strong>Insulin sensitivity</strong> — a 20 min walk after waking meaningfully lowers fasting glucose</div>
+                </div>
+                <div className="walk-benefit-item">
+                  <div className="walk-benefit-icon">🧠</div>
+                  <div className="walk-benefit-text"><strong>Vagus nerve</strong> — nasal breathing + steady rhythm shifts you into parasympathetic state</div>
+                </div>
+                <div className="walk-benefit-item">
+                  <div className="walk-benefit-icon">💪</div>
+                  <div className="walk-benefit-text"><strong>Active recovery</strong> — promotes blood flow to muscles worked in your last strength session</div>
+                </div>
+                <div className="walk-benefit-item">
+                  <div className="walk-benefit-icon">🔥</div>
+                  <div className="walk-benefit-text"><strong>Fat oxidation</strong> — low-intensity cardio targets fat without touching muscle</div>
+                </div>
               </div>
               <div className="sec-label" style={{marginTop: 16}}>Walk cues</div>
               <div className="wu-card"><div className="wu-name">Posture</div><div className="wu-desc">Shoulders back and down, gaze forward — not at your phone. Chin parallel to the ground.</div></div>
