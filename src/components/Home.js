@@ -138,13 +138,14 @@ function getTodayRecommendation(recentSessions) {
   }
 }
 
-export default function Home({ userId, onNavigate }) {
+export default function Home({ userId, onNavigate, onStartSession }) {
   const [weather, setWeather] = useState(null)
   const [weatherErr, setWeatherErr] = useState(false)
   const [schedule, setSchedule] = useState([])
   const [stats, setStats] = useState({ total: 0, streak: 0, thisMonth: 0 })
   const [nextSession, setNextSession] = useState(null)
   const [todayRec, setTodayRec] = useState(null)
+  const [recentSessions, setRecentSessions] = useState([])
 
   useEffect(() => {
     // Load schedule
@@ -192,6 +193,7 @@ export default function Home({ userId, onNavigate }) {
       // Today's recommendation from recent sessions
       const recent = data.slice(0, 14) // last 14 sessions
       setTodayRec(getTodayRecommendation(recent))
+      setRecentSessions(data.slice(0, 3)) // last 3 for strip
     }
 
     // Fetch weather via GPS
@@ -228,6 +230,35 @@ export default function Home({ userId, onNavigate }) {
   const next = formatNextDay(nextSession)
   const wInfo = weather ? WALK_ADVICE[weather.condition] : null
   const tempAdvice = weather ? getTempAdvice(weather.feelsLike) : null
+
+  // Map today rec to day index for navigation
+  function handleStartToday() {
+    if (!todayRec) return
+    if (todayRec.type === 'strength') {
+      // figure out next strength day index (0=Lower, 1=Upper, 2=Whole)
+      const lastStrength = recentSessions.find(s => s.day_index < 3)
+      const nextDayIdx = lastStrength != null ? (lastStrength.day_index + 1) % 3 : 0
+      onStartSession(nextDayIdx)
+    } else if (todayRec.type === 'walk') {
+      onStartSession(3) // walk tab
+    } else {
+      onNavigate('log')
+    }
+  }
+
+  function formatSessionLabel(s) {
+    const dayNames = ['Lower Body', 'Upper Body', 'Whole Body', 'Walk', 'Hike']
+    return s.day_title || dayNames[s.day_index] || 'Session'
+  }
+
+  function formatSessionDate(dateStr) {
+    const d = new Date(dateStr)
+    const today = new Date()
+    const diff = Math.floor((today - d) / 86400000)
+    if (diff === 0) return 'Today'
+    if (diff === 1) return 'Yesterday'
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })
+  }
 
   return (
     <div className="home-page">
@@ -266,11 +297,10 @@ export default function Home({ userId, onNavigate }) {
               <div className="today-label">{todayRec.label}</div>
               {todayRec.detail && <div className="today-detail">{todayRec.detail}</div>}
             </div>
-            {todayRec.type === 'strength' && (
-              <button className="today-go-btn" onClick={() => onNavigate('log')}>Start →</button>
-            )}
-            {todayRec.type === 'walk' && (
-              <button className="today-go-btn" onClick={() => onNavigate('log')}>Log →</button>
+            {(todayRec.type === 'strength' || todayRec.type === 'walk') && (
+              <button className="today-go-btn" onClick={handleStartToday}>
+                {todayRec.type === 'strength' ? 'Start →' : 'Log →'}
+              </button>
             )}
           </div>
           <div className="today-advice">{todayRec.advice}</div>
@@ -299,29 +329,6 @@ export default function Home({ userId, onNavigate }) {
         </div>
       )}
 
-      {/* Next session */}
-      <div className="home-card next-card">
-        <div className="home-card-label">Next session</div>
-        {next ? (
-          <>
-            <div className="next-day-title">
-              Day {nextSession.day_index + 1} — {nextSession.day_title}
-            </div>
-            <div className="next-day-when">
-              {next.daysUntil === 0 ? 'Today' : next.daysUntil === 1 ? 'Tomorrow' : next.weekday} · {next.time}
-            </div>
-            <button className="next-go-btn" onClick={() => onNavigate('log')}>
-              {next.daysUntil === 0 ? '→ Start now' : '→ Go to log'}
-            </button>
-          </>
-        ) : (
-          <div className="next-none">
-            No sessions scheduled yet.{' '}
-            <span className="next-link" onClick={() => onNavigate('schedule')}>Set up your schedule →</span>
-          </div>
-        )}
-      </div>
-
       {/* Stats */}
       <div className="home-card stats-card">
         <div className="home-card-label">Your program</div>
@@ -341,26 +348,18 @@ export default function Home({ userId, onNavigate }) {
         </div>
       </div>
 
-      {/* Quick nav */}
-      <div className="home-card-label" style={{marginTop: 4}}>Quick access</div>
-      <div className="quick-nav">
-        <button className="quick-btn" onClick={() => onNavigate('log')}>
-          <span className="quick-icon">🏋️</span>
-          <span className="quick-label">Log</span>
-        </button>
-        <button className="quick-btn" onClick={() => onNavigate('recovery')}>
-          <span className="quick-icon">🧠</span>
-          <span className="quick-label">Recovery</span>
-        </button>
-        <button className="quick-btn" onClick={() => onNavigate('schedule')}>
-          <span className="quick-icon">📅</span>
-          <span className="quick-label">Schedule</span>
-        </button>
-        <button className="quick-btn" onClick={() => onNavigate('progress')}>
-          <span className="quick-icon">📈</span>
-          <span className="quick-label">Progress</span>
-        </button>
-      </div>
+      {/* Recent sessions strip */}
+      {recentSessions.length > 0 && (
+        <div className="home-card recent-card">
+          <div className="home-card-label">Recent sessions</div>
+          {recentSessions.map((s, i) => (
+            <div key={i} className="recent-row" onClick={() => onNavigate('history')}>
+              <span className="recent-label">{formatSessionLabel(s)}</span>
+              <span className="recent-date">{formatSessionDate(s.session_date)}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
