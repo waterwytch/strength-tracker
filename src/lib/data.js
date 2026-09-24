@@ -180,13 +180,17 @@ export const BANK = {
     { n: 'Cable seated row', d: 'Horizontal pull, mid-back' },
     { n: 'TRX row', d: 'Bodyweight, scalable angle' },
     { n: 'Lat pulldown', d: 'Vertical pull, lat focus' },
-    { n: 'Dumbbell single arm row', d: 'Unilateral back' }
+    { n: 'Dumbbell single arm row', d: 'Unilateral back' },
+    { n: 'Seated V-bar pulldown', d: 'Cable, close grip, lat focus' },
+    { n: 'Assisted pull-up close grip', d: 'Machine-assisted, vertical pull' }
   ],
   'Shoulders': [
     { n: 'Landmine press', d: 'Arc path, shoulder-friendly' },
     { n: 'Dumbbell seated shoulder press', d: 'Bilateral overhead' },
     { n: 'Cable rope face pull', d: 'Rear delt and rotator cuff' },
-    { n: 'Dumbbell lateral raise', d: 'Side delt isolation' }
+    { n: 'Dumbbell lateral raise', d: 'Side delt isolation' },
+    { n: 'Seated rear deltoid fly', d: 'Rear delt isolation, machine or cable' },
+    { n: 'Seated pec & anterior deltoid fly', d: 'Chest and front delt, machine or cable' }
   ],
   'Arms': [
     { n: 'Cable V-bar tricep pushdown', d: 'Tricep isolation' },
@@ -200,7 +204,8 @@ export const BANK = {
     { n: 'Farmer walk', d: 'Loaded carry, grip and core' },
     { n: "Farmer's carry march", d: 'High-knee loaded carry' },
     { n: 'Sled push', d: 'Concentric leg drive' },
-    { n: 'Lateral sled drag', d: 'Lateral loaded carry' }
+    { n: 'Lateral sled drag', d: 'Lateral loaded carry' },
+    { n: 'Suspended knee tucks', d: 'TRX/rings, core and hip flexor' }
   ]
 }
 
