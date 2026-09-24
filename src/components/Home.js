@@ -142,7 +142,7 @@ export default function Home({ userId, onNavigate, onStartSession }) {
   const [weather, setWeather] = useState(null)
   const [weatherErr, setWeatherErr] = useState(false)
   const [schedule, setSchedule] = useState([])
-  const [stats, setStats] = useState({ total: 0, streak: 0, thisMonth: 0, thisWeek: 0 })
+  const [stats, setStats] = useState({ total: 0, streak: 0, thisMonth: 0, thisWeekStrength: 0, thisWeekWalks: 0 })
   const [nextSession, setNextSession] = useState(null)
   const [todayRec, setTodayRec] = useState(null)
   const [recentSessions, setRecentSessions] = useState([])
@@ -180,11 +180,13 @@ export default function Home({ userId, onNavigate, onStartSession }) {
       }).length
 
       // Current week (Mon–Sun)
-      const dayOfWeek = now.getDay() // 0=Sun
+      const dayOfWeek = now.getDay()
       const startOfWeek = new Date(now)
       startOfWeek.setDate(now.getDate() - ((dayOfWeek + 6) % 7)) // Monday
       startOfWeek.setHours(0, 0, 0, 0)
-      const thisWeek = data.filter(s => new Date(s.session_date) >= startOfWeek).length
+      const thisWeekSessions = data.filter(s => new Date(s.session_date) >= startOfWeek)
+      const thisWeekStrength = thisWeekSessions.filter(s => s.day_index < 3).length
+      const thisWeekWalks = thisWeekSessions.filter(s => s.day_index >= 3).length
 
       // streak: consecutive weeks with at least 1 session
       const weekSet = new Set()
@@ -195,7 +197,7 @@ export default function Home({ userId, onNavigate, onStartSession }) {
       })
       const streak = weekSet.size
 
-      setStats({ total, thisMonth, streak, thisWeek })
+      setStats({ total, thisMonth, streak, thisWeekStrength, thisWeekWalks })
 
       // Today's recommendation from recent sessions
       const recent = data.slice(0, 14) // last 14 sessions
@@ -368,8 +370,18 @@ export default function Home({ userId, onNavigate, onStartSession }) {
         <div className="home-card-label">Your program</div>
         <div className="stats-row">
           <div className="stat-block">
-            <div className="stat-val">{stats.thisWeek}</div>
-            <div className="stat-lbl">This week</div>
+            <div className="stat-val">
+              <span style={{color: stats.thisWeekStrength >= 3 ? '#30c060' : '#e8e8e8'}}>{stats.thisWeekStrength}</span>
+              <span style={{fontSize: 14, color: '#444'}}>/3</span>
+            </div>
+            <div className="stat-lbl">Strength</div>
+          </div>
+          <div className="stat-block">
+            <div className="stat-val">
+              <span style={{color: stats.thisWeekWalks >= 2 ? '#30c060' : '#e8e8e8'}}>{stats.thisWeekWalks}</span>
+              <span style={{fontSize: 14, color: '#444'}}>/2</span>
+            </div>
+            <div className="stat-lbl">Walks</div>
           </div>
           <div className="stat-block">
             <div className="stat-val">{stats.streak}</div>
