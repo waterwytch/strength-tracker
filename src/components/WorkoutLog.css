@@ -93,6 +93,13 @@
 .sw-v { font-size: 18px; font-weight: 700; color: #5baaf6; }
 .sw-l { font-size: 10px; color: #446; margin-top: 2px; }
 .walk-tab.active { border-color: #30c060 !important; color: #30c060 !important; background: #0a1a10 !important; }
+.walk-log-form { }
+.walk-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.walk-field { display: flex; flex-direction: column; gap: 5px; }
+.walk-label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: .06em; }
+.walk-input { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; color: #e8e8e8; font-size: 15px; padding: 10px 11px; width: 100%; }
+.walk-input:focus { outline: none; border-color: #30c060; }
+.walk-saved { text-align: center; padding: 40px 20px; font-size: 22px; font-weight: 700; color: #30c060; }
 .walk-view { padding: 20px 0; }
 .walk-icon-big { font-size: 56px; text-align: center; margin-bottom: 12px; }
 .walk-tip { font-size: 13px; color: #888; line-height: 1.6; background: #1a1a1a; border: 1px solid #222; border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; }
