@@ -142,7 +142,7 @@ export default function Home({ userId, onNavigate, onStartSession }) {
   const [weather, setWeather] = useState(null)
   const [weatherErr, setWeatherErr] = useState(false)
   const [schedule, setSchedule] = useState([])
-  const [stats, setStats] = useState({ total: 0, streak: 0, thisMonth: 0 })
+  const [stats, setStats] = useState({ total: 0, streak: 0, thisMonth: 0, thisWeek: 0 })
   const [nextSession, setNextSession] = useState(null)
   const [todayRec, setTodayRec] = useState(null)
   const [recentSessions, setRecentSessions] = useState([])
@@ -179,6 +179,13 @@ export default function Home({ userId, onNavigate, onStartSession }) {
         return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
       }).length
 
+      // Current week (Mon–Sun)
+      const dayOfWeek = now.getDay() // 0=Sun
+      const startOfWeek = new Date(now)
+      startOfWeek.setDate(now.getDate() - ((dayOfWeek + 6) % 7)) // Monday
+      startOfWeek.setHours(0, 0, 0, 0)
+      const thisWeek = data.filter(s => new Date(s.session_date) >= startOfWeek).length
+
       // streak: consecutive weeks with at least 1 session
       const weekSet = new Set()
       data.forEach(s => {
@@ -188,7 +195,7 @@ export default function Home({ userId, onNavigate, onStartSession }) {
       })
       const streak = weekSet.size
 
-      setStats({ total, thisMonth, streak })
+      setStats({ total, thisMonth, streak, thisWeek })
 
       // Today's recommendation from recent sessions
       const recent = data.slice(0, 14) // last 14 sessions
@@ -329,21 +336,48 @@ export default function Home({ userId, onNavigate, onStartSession }) {
         </div>
       )}
 
+      {/* Session picker — always available */}
+      <div className="home-card session-picker-card">
+        <div className="home-card-label">Start a session</div>
+        <div className="session-picker">
+          <button className="sess-btn sess-btn-strength" onClick={() => onStartSession(0)}>
+            <span className="sess-btn-icon">🦵</span>
+            <span className="sess-btn-label">Lower</span>
+          </button>
+          <button className="sess-btn sess-btn-strength" onClick={() => onStartSession(1)}>
+            <span className="sess-btn-icon">💪</span>
+            <span className="sess-btn-label">Upper</span>
+          </button>
+          <button className="sess-btn sess-btn-strength" onClick={() => onStartSession(2)}>
+            <span className="sess-btn-icon">🏋️</span>
+            <span className="sess-btn-label">Whole</span>
+          </button>
+          <button className="sess-btn sess-btn-walk" onClick={() => onStartSession(3)}>
+            <span className="sess-btn-icon">🚶‍♀️</span>
+            <span className="sess-btn-label">Walk</span>
+          </button>
+          <button className="sess-btn sess-btn-walk" onClick={() => onStartSession(4)}>
+            <span className="sess-btn-icon">🥾</span>
+            <span className="sess-btn-label">Hike</span>
+          </button>
+        </div>
+      </div>
+
       {/* Stats */}
       <div className="home-card stats-card">
         <div className="home-card-label">Your program</div>
         <div className="stats-row">
           <div className="stat-block">
-            <div className="stat-val">{stats.total}</div>
-            <div className="stat-lbl">Sessions logged</div>
-          </div>
-          <div className="stat-block">
-            <div className="stat-val">{stats.thisMonth}</div>
-            <div className="stat-lbl">This month</div>
+            <div className="stat-val">{stats.thisWeek}</div>
+            <div className="stat-lbl">This week</div>
           </div>
           <div className="stat-block">
             <div className="stat-val">{stats.streak}</div>
             <div className="stat-lbl">Active weeks</div>
+          </div>
+          <div className="stat-block">
+            <div className="stat-val">{stats.thisMonth}</div>
+            <div className="stat-lbl">This month</div>
           </div>
         </div>
       </div>
