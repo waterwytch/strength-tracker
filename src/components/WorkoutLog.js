@@ -17,7 +17,7 @@ export default function WorkoutLog({ userId }) {
   const [savedSession, setSavedSession] = useState(null)
   const [saving, setSaving] = useState(false)
   const [seeded, setSeeded] = useState(false)
-  const [walkLog, setWalkLog] = useState({ duration: '', calories: '', hr: '', pace: '', distance: '' })
+  const [walkLog, setWalkLog] = useState({ duration: '', calories: '', hr: '', pace: '', distance: '', elevation: '' })
   const [walkSaved, setWalkSaved] = useState(false)
   const [walkSaving, setWalkSaving] = useState(false)
 
@@ -258,12 +258,13 @@ export default function WorkoutLog({ userId }) {
       avg_hr: walkLog.hr || null,
       avg_pace: walkLog.pace || null,
       distance_mi: walkLog.distance || null,
+      elevation_ft: walkLog.elevation || null,
     })
     setWalkSaving(false)
     setWalkSaved(true)
     setTimeout(() => {
       setWalkSaved(false)
-      setWalkLog({ duration: '', calories: '', hr: '', pace: '', distance: '' })
+      setWalkLog({ duration: '', calories: '', hr: '', pace: '', distance: '', elevation: '' })
     }, 2500)
   }
 
@@ -327,6 +328,13 @@ export default function WorkoutLog({ userId }) {
                   <input className="walk-input" type="text" placeholder="e.g. 18:30" value={walkLog.pace}
                     onChange={e => setWalkLog(p => ({...p, pace: e.target.value}))} />
                 </div>
+                {dayIdx - DAYS.length === 1 && (
+                  <div className="walk-field">
+                    <div className="walk-label">Elevation gain (ft)</div>
+                    <input className="walk-input" type="number" placeholder="e.g. 320" value={walkLog.elevation}
+                      onChange={e => setWalkLog(p => ({...p, elevation: e.target.value}))} />
+                  </div>
+                )}
               </div>
               <button className="finish-btn" onClick={saveWalk} disabled={walkSaving || !Object.values(walkLog).some(v => v)}>
                 {walkSaving ? 'Saving…' : '✓ Log walk'}
