@@ -78,6 +78,7 @@
 .swap-current-label { font-size: 11px; color: #444; }
 .swap-select-btn { font-size: 12px; color: #5b9cf6; border: 1px solid #1e4080; border-radius: 6px; padding: 5px 11px; background: transparent; }
 .loading-msg { padding: 40px; text-align: center; color: #555; }
+.draft-restored-banner { background: #0a2518; border: 1px solid #1a6030; color: #30c060; border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 600; margin-bottom: 10px; text-align: center; }
 .watch-fields { background: #111; border: 1px solid #1e1e1e; border-radius: 10px; padding: 12px; margin-bottom: 8px; }
 .watch-row { display: flex; gap: 10px; margin-bottom: 10px; }
 .watch-field { flex: 1; display: flex; flex-direction: column; gap: 4px; }
