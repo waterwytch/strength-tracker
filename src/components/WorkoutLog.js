@@ -250,7 +250,10 @@ export default function WorkoutLog({ userId }) {
   return (
     <div className="workout-log">
       <div className="wl-header">
-        <div className="watch-note">⌚ Enable <strong>Functional Strength Training</strong> on Apple Watch before starting.</div>
+        {dayIdx < DAYS.length
+          ? <div className="watch-note">⌚ Enable <strong>Functional Strength Training</strong> on Apple Watch before starting.</div>
+          : <div className="watch-note">⌚ Open Workout app → <strong>{dayIdx - DAYS.length === 1 ? 'Hiking' : 'Outdoor Walk'}</strong> on your Apple Watch before heading out.</div>
+        }
         <div className="day-tabs">
           {DAYS.map((d, i) => (
             <button key={i} className={`day-tab ${dayIdx === i ? 'active' : ''}`} onClick={() => setDayIdx(i)}>
@@ -274,22 +277,6 @@ export default function WorkoutLog({ userId }) {
             <div className="walk-view">
               <div className="walk-icon-big">🚶‍♀️</div>
               <div className="walk-tip">{w.cue}</div>
-
-              <div className="watch-note walk-watch-note">
-                <div className="walk-watch-title">⌚ Start on your Apple Watch</div>
-                <div className="walk-watch-row">
-                  <div className="walk-watch-option">
-                    <div className="walk-watch-label">Neighborhood walk</div>
-                    <div className="walk-watch-steps">Workout app → <strong>Outdoor Walk</strong></div>
-                  </div>
-                  <div className="walk-watch-divider">or</div>
-                  <div className="walk-watch-option">
-                    <div className="walk-watch-label">Trail / hike</div>
-                    <div className="walk-watch-steps">Workout app → <strong>Hiking</strong></div>
-                  </div>
-                </div>
-                <div className="walk-watch-sub">Tracks pace, distance, calories, and heart rate zone — all count toward your Move ring.</div>
-              </div>
 
               <div className="sec-label" style={{marginTop: 16}}>Why it matters</div>
               <div className="walk-benefits">
