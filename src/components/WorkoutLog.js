@@ -8,8 +8,8 @@ const WALK_TABS = [
   { id: 'walk2', label: 'Walk 2', icon: '🚶‍♀️', cue: 'Easy pace — you should be able to hold a conversation. Focus on nasal breathing.' }
 ]
 
-export default function WorkoutLog({ userId }) {
-  const [dayIdx, setDayIdx] = useState(0) // 0-2 = strength days, 3-4 = walks
+export default function WorkoutLog({ userId, initialDay = 0 }) {
+  const [dayIdx, setDayIdx] = useState(initialDay) // 0-2 = strength days, 3-4 = walks
   const [draft, setDraft] = useState(null)
   const [lastSession, setLastSession] = useState(null)
   const [view, setView] = useState('log') // log | success | swap
@@ -329,9 +329,22 @@ export default function WorkoutLog({ userId }) {
 
   const prevDate = lastSession ? new Date(lastSession.session_date).toLocaleDateString('en-US', {weekday:'short',month:'short',day:'numeric'}) : null
 
+  const SESSION_TITLES = ['Lower Body', 'Upper Body', 'Whole Body', 'Walk', 'Hike']
+  const SESSION_ICONS = ['🦵', '💪', '🏋️', '🚶‍♀️', '🥾']
+  const currentTitle = dayIdx < DAYS.length
+    ? SESSION_TITLES[dayIdx]
+    : dayIdx - DAYS.length === 1 ? 'Hike' : 'Walk'
+  const currentIcon = dayIdx < DAYS.length
+    ? SESSION_ICONS[dayIdx]
+    : dayIdx - DAYS.length === 1 ? '🥾' : '🚶‍♀️'
+
   return (
     <div className="workout-log">
       <div className="wl-header">
+        <div className="wl-session-title">
+          <span className="wl-session-icon">{currentIcon}</span>
+          <span className="wl-session-name">{currentTitle}</span>
+        </div>
         {dayIdx < DAYS.length
           ? <div className="watch-note">⌚ Enable <strong>Functional Strength Training</strong> on Apple Watch before starting.</div>
           : <div className="watch-note">⌚ Open Workout app → <strong>{dayIdx - DAYS.length === 1 ? 'Hiking' : 'Outdoor Walk'}</strong> on your Apple Watch before heading out.</div>
