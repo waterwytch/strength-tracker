@@ -31,7 +31,7 @@
 .stats-row { display: flex; gap: 0; }
 .stat-block { flex: 1; text-align: center; padding: 4px 0; border-right: 1px solid #222; }
 .stat-block:last-child { border-right: none; }
-.stat-val { font-size: 26px; font-weight: 700; margin-bottom: 2px; }
+.stat-val { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
 .stat-lbl { font-size: 11px; color: #555; }
 
 /* Today card */
@@ -53,6 +53,16 @@
 .today-walk { border-color: #1a5030; }
 .today-rest { border-color: #333; }
 .today-done { border-color: #1a5030; }
+
+/* Session picker */
+.session-picker { display: flex; gap: 7px; }
+.sess-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 11px 4px; border-radius: 10px; border: 1px solid #2a2a2a; background: #141414; }
+.sess-btn-icon { font-size: 20px; line-height: 1; }
+.sess-btn-label { font-size: 11px; font-weight: 600; }
+.sess-btn-strength { border-color: #1e4080; color: #5b9cf6; }
+.sess-btn-strength:active { background: #0d1f3a; }
+.sess-btn-walk { border-color: #1a5030; color: #30c060; }
+.sess-btn-walk:active { background: #0a1a10; }
 
 /* Recent sessions */
 .recent-card { }
