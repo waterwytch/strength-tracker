@@ -88,48 +88,29 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
 
   useEffect(() => {
     if (!seeded) return
-    if (dayIdx >= DAYS.length) return // walk — no draft needed, form renders directly
+    if (dayIdx >= DAYS.length) return // walk — renders directly
 
-    let cancelled = false
     setDraft(null)
+    let active = true
 
-    async function load() {
-      // Check for saved draft first — inlined to avoid stale closure
-      // Use maybeSingle() so missing row returns null instead of error
-      const { data: draftRow } = await supabase
-        .from('session_drafts')
-        .select('draft, updated_at')
-        .eq('user_id', userId)
-        .eq('day_index', dayIdx)
-        .maybeSingle()
+    supabase
+      .from('sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('day_index', dayIdx)
+      .order('session_date', { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (!active) return
+        const last = data && data[0] ? data[0] : null
+        setLastSession(last)
+        initDraft(dayIdx, last)
+      })
+      .catch(() => {
+        if (active) initDraft(dayIdx, null)
+      })
 
-      if (cancelled) return
-
-      if (draftRow && draftRow.draft) {
-        setDraft(draftRow.draft)
-        setDraftRestored(true)
-        setTimeout(() => setDraftRestored(false), 3000)
-        return
-      }
-
-      // No draft — load last session and init
-      const { data } = await supabase
-        .from('sessions')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('day_index', dayIdx)
-        .order('session_date', { ascending: false })
-        .limit(1)
-
-      if (cancelled) return
-
-      const last = data && data[0] ? data[0] : null
-      setLastSession(last)
-      initDraft(dayIdx, last)
-    }
-
-    load()
-    return () => { cancelled = true }
+    return () => { active = false }
   }, [dayIdx, seeded, userId])
 
   // Auto-save draft 2 seconds after any change
