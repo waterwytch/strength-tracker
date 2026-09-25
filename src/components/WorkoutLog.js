@@ -95,12 +95,13 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
 
     async function load() {
       // Check for saved draft first — inlined to avoid stale closure
+      // Use maybeSingle() so missing row returns null instead of error
       const { data: draftRow } = await supabase
         .from('session_drafts')
         .select('draft, updated_at')
         .eq('user_id', userId)
         .eq('day_index', dayIdx)
-        .single()
+        .maybeSingle()
 
       if (cancelled) return
 
