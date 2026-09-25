@@ -93,21 +93,54 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
     setDraft(null)
     let active = true
 
+    // Check for saved draft first, then fall back to last session
     supabase
-      .from('sessions')
-      .select('*')
+      .from('session_drafts')
+      .select('draft')
       .eq('user_id', userId)
       .eq('day_index', dayIdx)
-      .order('session_date', { ascending: false })
-      .limit(1)
-      .then(({ data }) => {
+      .maybeSingle()
+      .then(({ data: draftRow }) => {
         if (!active) return
-        const last = data && data[0] ? data[0] : null
-        setLastSession(last)
-        initDraft(dayIdx, last)
+        if (draftRow && draftRow.draft) {
+          setDraft(draftRow.draft)
+          setDraftRestored(true)
+          setTimeout(() => setDraftRestored(false), 3000)
+          return
+        }
+        // No draft — load last session to pre-fill
+        supabase
+          .from('sessions')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('day_index', dayIdx)
+          .order('session_date', { ascending: false })
+          .limit(1)
+          .then(({ data }) => {
+            if (!active) return
+            const last = data && data[0] ? data[0] : null
+            setLastSession(last)
+            initDraft(dayIdx, last)
+          })
+          .catch(() => { if (active) initDraft(dayIdx, null) })
       })
       .catch(() => {
-        if (active) initDraft(dayIdx, null)
+        // draft table error — go straight to last session
+        if (!active) return
+        supabase
+          .from('sessions')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('day_index', dayIdx)
+          .order('session_date', { ascending: false })
+          .limit(1)
+          .then(({ data }) => {
+            if (!active) return
+            const last = data && data[0] ? data[0] : null
+            setLastSession(last)
+            initDraft(dayIdx, last)
+          })
+          .catch(() => { if (active) initDraft(dayIdx, null) })
       })
 
     return () => { active = false }
