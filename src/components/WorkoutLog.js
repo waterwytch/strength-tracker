@@ -11,7 +11,7 @@ const WALK_TABS = [
 export default function WorkoutLog({ userId, initialDay = 0 }) {
   const [dayIdx, setDayIdx] = useState(initialDay) // 0-2 = strength days, 3-4 = walks
   const [draft, setDraft] = useState(null)
-  const [lastSession, setLastSession] = useState(null)
+  const [lastSession, setLastSession] = useState(undefined)
   const [view, setView] = useState('log') // log | success | swap
   const [swapTarget, setSwapTarget] = useState(null)
   const [savedSession, setSavedSession] = useState(null)
@@ -87,7 +87,13 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
   }, [seedSessions])
 
   useEffect(() => {
-    if (seeded && dayIdx < DAYS.length) loadLastSession(dayIdx)
+    setDraft(null)
+    setLastSession(undefined)
+    if (seeded && dayIdx < DAYS.length) {
+      loadLastSession(dayIdx)
+    } else if (seeded && dayIdx >= DAYS.length) {
+      setLastSession(null) // walks don't need a last session
+    }
   }, [dayIdx, seeded, loadLastSession])
 
   useEffect(() => {
