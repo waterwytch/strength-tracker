@@ -394,12 +394,15 @@ export default function Home({ userId, onNavigate, onStartSession }) {
         </div>
       </div>
 
-      {/* Recent sessions strip */}
+      {/* History strip */}
       {recentSessions.length > 0 && (
         <div className="home-card recent-card">
-          <div className="home-card-label">Recent sessions</div>
+          <div className="recent-card-header">
+            <div className="home-card-label" style={{margin: 0}}>History</div>
+            <button className="recent-see-all" onClick={() => onNavigate('history')}>See all →</button>
+          </div>
           {recentSessions.map((s, i) => (
-            <div key={i} className="recent-row" onClick={() => onNavigate('history')}>
+            <div key={i} className="recent-row">
               <span className="recent-label">{formatSessionLabel(s)}</span>
               <span className="recent-date">{formatSessionDate(s.session_date)}</span>
             </div>
