@@ -91,7 +91,7 @@ export const FORM = {
   'Sled push': {
     setup: ['Hands on poles arms extended, lean into sled at 45 degrees'],
     movement: ['Drive with alternating leg pushes, stay low throughout', 'Short powerful strides'],
-    note: 'Concentric loading only — no eccentric stress. Ideal for OA knee and IT band history.'
+    note: 'Concentric loading only — no eccentric stress. Ideal for OA knee.'
   },
   'Kettlebell plie squat': {
     setup: ['Very wide stance toes 45 degrees plus, KB between legs arms straight'],
@@ -115,7 +115,7 @@ export const FORM = {
   'Cable hip abduction': {
     setup: ['Cable at ankle height, cuff on outside ankle, stand side-on to cable machine'],
     movement: ['Lift leg out to the side — lead with heel not toe, hold briefly, lower with control'],
-    note: 'Direct glute med isolation. High priority for hip stability and IT band resilience.'
+    note: 'Direct glute med isolation. High priority for hip stability.'
   },
   'Side-lying hip abduction': {
     setup: ['Lie on side, body in a straight line, bottom leg straight'],
@@ -272,14 +272,14 @@ export const DAYS = [
   }
 ]
 
-export const JOINTS = ['Left knee (OA)', 'Right knee (IT band)', 'Left bicep tendon']
+export const JOINTS = ['Left knee (OA)', 'Left bicep tendon']
 
 export const SEED_SESSIONS = [
   {
     day_index: 0, day_title: 'Lower body',
     session_date: '2026-09-10',
     notes: '',
-    joints: { 'Left knee (OA)': 'ok', 'Right knee (IT band)': 'ok', 'Left bicep tendon': 'ok' },
+    joints: { 'Left knee (OA)': 'ok', 'Left bicep tendon': 'ok' },
     exercises: [
       { name: 'Barbell back squat', sets: [{reps:'10',wt:'45',done:true},{reps:'10',wt:'45',done:true},{reps:'10',wt:'45',done:true}] },
       { name: 'Barbell Romanian deadlift', sets: [{reps:'8',wt:'45',done:true},{reps:'8',wt:'45',done:true},{reps:'8',wt:'45',done:true}] },
@@ -295,7 +295,7 @@ export const SEED_SESSIONS = [
     day_index: 1, day_title: 'Upper body',
     session_date: '2026-09-11',
     notes: '',
-    joints: { 'Left knee (OA)': 'ok', 'Right knee (IT band)': 'ok', 'Left bicep tendon': 'ok' },
+    joints: { 'Left knee (OA)': 'ok', 'Left bicep tendon': 'ok' },
     exercises: [
       { name: 'Barbell bench press', sets: [{reps:'8',wt:'50',done:true},{reps:'8',wt:'50',done:true},{reps:'8',wt:'50',done:true},{reps:'8',wt:'50',done:true}] },
       { name: 'Landmine press', sets: [{reps:'9',wt:'45',done:true},{reps:'9',wt:'45',done:true},{reps:'9',wt:'45',done:true}] },
@@ -310,7 +310,7 @@ export const SEED_SESSIONS = [
     day_index: 0, day_title: 'Lower body',
     session_date: '2026-09-15',
     notes: 'Skipped lateral sled drag.',
-    joints: { 'Left knee (OA)': 'ok', 'Right knee (IT band)': 'ok', 'Left bicep tendon': 'ok' },
+    joints: { 'Left knee (OA)': 'ok', 'Left bicep tendon': 'ok' },
     exercises: [
       { name: 'Barbell back squat', sets: [{reps:'8',wt:'45',done:true},{reps:'8',wt:'45',done:true},{reps:'8',wt:'45',done:true}] },
       { name: 'Barbell Romanian deadlift', sets: [{reps:'8',wt:'45',done:true},{reps:'8',wt:'45',done:true},{reps:'8',wt:'45',done:true}] },
