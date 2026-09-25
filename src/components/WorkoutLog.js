@@ -399,20 +399,21 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
         <div className="day-tabs">
           {DAYS.map((d, i) => (
             <button key={i} className={`day-tab ${dayIdx === i ? 'active' : ''}`} onClick={() => setDayIdx(i)}>
-              {d.label}<br /><span className="day-tab-sub">{d.title.split(' ')[0]}</span>
+              <span className="day-tab-sub">{['Lower', 'Upper', 'Whole'][i]}</span>
             </button>
           ))}
-          {WALK_TABS.map((w, i) => (
-            <button key={`w${i}`} className={`day-tab walk-tab ${dayIdx === DAYS.length + i ? 'active' : ''}`} onClick={() => setDayIdx(DAYS.length + i)}>
-              {w.icon}<br /><span className="day-tab-sub">Walk {i + 1}</span>
-            </button>
-          ))}
+          <button className={`day-tab walk-tab ${dayIdx === DAYS.length ? 'active' : ''}`} onClick={() => setDayIdx(DAYS.length)}>
+            <span className="day-tab-sub">Walk</span>
+          </button>
+          <button className={`day-tab walk-tab ${dayIdx === DAYS.length + 1 ? 'active' : ''}`} onClick={() => setDayIdx(DAYS.length + 1)}>
+            <span className="day-tab-sub">Hike</span>
+          </button>
         </div>
       </div>
 
       {dayIdx >= DAYS.length && (
         <div className="wl-body">
-          <div className="sess-title">Walk {dayIdx - DAYS.length + 1}</div>
+          <div className="sess-title">{dayIdx - DAYS.length === 1 ? 'Hike' : 'Walk'}</div>
           <div className="sess-meta">{new Date().toLocaleDateString('en-US', {weekday:'long',month:'long',day:'numeric'})}</div>
           {walkSaved ? (
             <div className="walk-saved">✓ Walk logged</div>
