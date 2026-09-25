@@ -120,7 +120,7 @@ function getTodayRecommendation(recentSessions) {
   if (lastWalk) {
     const daysSinceWalk = Math.floor((Date.now() - new Date(lastWalk.session_date).getTime()) / 86400000)
     if (daysSinceWalk >= 3 && lastStrength && Math.floor((Date.now() - new Date(lastStrength.session_date).getTime()) / 86400000) <= 1) {
-      return { type: 'walk', label: 'Walk day', icon: '🚶‍♀️', detail: 'Outdoor Walk', advice: `Last walk was ${daysSinceWalk} days ago — good day to get outside.` }
+      return { type: 'walk', label: 'Walk day', icon: '🚶', detail: 'Outdoor Walk', advice: `Last walk was ${daysSinceWalk} days ago — good day to get outside.` }
     }
   }
 
@@ -355,11 +355,11 @@ export default function Home({ userId, onNavigate, onStartSession }) {
             <span className="sess-btn-label">Whole</span>
           </button>
           <button className="sess-btn sess-btn-walk" onClick={() => onStartSession(3)}>
-            <span className="sess-btn-icon">🚶‍♀️</span>
+            <span className="sess-btn-icon">🚶</span>
             <span className="sess-btn-label">Walk</span>
           </button>
           <button className="sess-btn sess-btn-walk" onClick={() => onStartSession(4)}>
-            <span className="sess-btn-icon">🥾</span>
+            <span className="sess-btn-icon">⛰️</span>
             <span className="sess-btn-label">Hike</span>
           </button>
         </div>
