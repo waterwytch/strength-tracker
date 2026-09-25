@@ -4,8 +4,8 @@ import { DAYS, JOINTS, FORM, BANK, SEED_SESSIONS } from '../lib/data'
 import './WorkoutLog.css'
 
 const WALK_TABS = [
-  { id: 'walk1', label: 'Walk 1', icon: '🚶‍♀️', cue: 'Easy pace — you should be able to hold a conversation. Focus on nasal breathing.' },
-  { id: 'walk2', label: 'Walk 2', icon: '🚶‍♀️', cue: 'Easy pace — you should be able to hold a conversation. Focus on nasal breathing.' }
+  { id: 'walk1', label: 'Walk 1', icon: '🚶', cue: 'Easy pace — you should be able to hold a conversation. Focus on nasal breathing.' },
+  { id: 'walk2', label: 'Walk 2', icon: '⛰️', cue: 'Easy pace — you should be able to hold a conversation. Focus on nasal breathing.' }
 ]
 
 export default function WorkoutLog({ userId, initialDay = 0 }) {
@@ -333,14 +333,47 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
 
   const prevDate = lastSession ? new Date(lastSession.session_date).toLocaleDateString('en-US', {weekday:'short',month:'short',day:'numeric'}) : null
 
+  // Session brief — proactive callouts based on last session + time gap
+  function getSessionBrief() {
+    const notes = []
+    if (dayIdx >= DAYS.length) return notes // walks don't need a brief
+
+    const now = new Date()
+    const hour = now.getHours()
+
+    // DOMS warning if gap > 5 days
+    if (lastSession) {
+      const daysSince = Math.floor((Date.now() - new Date(lastSession.session_date).getTime()) / 86400000)
+      if (daysSince >= 5) {
+        notes.push({ icon: '⚠️', text: `${daysSince} days since your last ${currentTitle} session — expect some DOMS. Go lighter on the first set of each exercise and work up.` })
+      } else if (daysSince >= 3) {
+        notes.push({ icon: '💡', text: `${daysSince} days since last session — you may feel it tomorrow. That's normal, not a sign to stop.` })
+      }
+    }
+
+    // Morning mood boost reminder
+    if (hour < 12) {
+      notes.push({ icon: '🧠', text: 'Morning session — your mood will thank you. IM8 + L-theanine kicking in yet?' })
+    }
+
+    // Bicep tendon note if relevant day
+    if (dayIdx === 1 || dayIdx === 2) { // upper or whole body
+      notes.push({ icon: '👀', text: 'Left bicep tendon — watch the descent on bench and overhead work. Front shoulder ache = reduce range before reducing weight.' })
+    }
+
+    return notes
+  }
+
+  const sessionBrief = getSessionBrief()
+
   const SESSION_TITLES = ['Lower Body', 'Upper Body', 'Whole Body', 'Walk', 'Hike']
-  const SESSION_ICONS = ['🦵', '💪', '🏋️', '🚶‍♀️', '🥾']
+  const SESSION_ICONS = ['🦵', '💪', '🏋️', '🚶', '⛰️']
   const currentTitle = dayIdx < DAYS.length
     ? SESSION_TITLES[dayIdx]
     : dayIdx - DAYS.length === 1 ? 'Hike' : 'Walk'
   const currentIcon = dayIdx < DAYS.length
     ? SESSION_ICONS[dayIdx]
-    : dayIdx - DAYS.length === 1 ? '🥾' : '🚶‍♀️'
+    : dayIdx - DAYS.length === 1 ? '⛰️' : '🚶'
 
   return (
     <div className="workout-log">
@@ -353,6 +386,16 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
           ? <div className="watch-note">⌚ Enable <strong>Functional Strength Training</strong> on Apple Watch before starting.</div>
           : <div className="watch-note">⌚ Open Workout app → <strong>{dayIdx - DAYS.length === 1 ? 'Hiking' : 'Outdoor Walk'}</strong> on your Apple Watch before heading out.</div>
         }
+        {sessionBrief.length > 0 && (
+          <div className="session-brief">
+            {sessionBrief.map((note, i) => (
+              <div key={i} className="brief-note">
+                <span className="brief-icon">{note.icon}</span>
+                <span className="brief-text">{note.text}</span>
+              </div>
+            ))}
+          </div>
+        )}
         <div className="day-tabs">
           {DAYS.map((d, i) => (
             <button key={i} className={`day-tab ${dayIdx === i ? 'active' : ''}`} onClick={() => setDayIdx(i)}>
