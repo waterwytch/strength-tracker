@@ -368,8 +368,6 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
     return notes
   }
 
-  const sessionBrief = getSessionBrief()
-
   const SESSION_TITLES = ['Lower Body', 'Upper Body', 'Whole Body', 'Walk', 'Hike']
   const SESSION_ICONS = ['🦵', '💪', '🏋️', '🚶', '⛰️']
   const currentTitle = dayIdx < DAYS.length
@@ -378,6 +376,8 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
   const currentIcon = dayIdx < DAYS.length
     ? SESSION_ICONS[dayIdx]
     : dayIdx - DAYS.length === 1 ? '⛰️' : '🚶'
+
+  const sessionBrief = getSessionBrief()
 
   return (
     <div className="workout-log">
