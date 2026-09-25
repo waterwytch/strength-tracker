@@ -87,33 +87,49 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
   }, [seedSessions])
 
   useEffect(() => {
-    setDraft(null)
-    setLastSession(undefined)
-    if (seeded && dayIdx < DAYS.length) {
-      loadLastSession(dayIdx)
-    } else if (seeded && dayIdx >= DAYS.length) {
-      setLastSession(null) // walks don't need a last session
-    }
-  }, [dayIdx, seeded, loadLastSession])
+    if (!seeded) return
+    if (dayIdx >= DAYS.length) return // walk — no draft needed, form renders directly
 
-  useEffect(() => {
-    if (lastSession !== undefined) {
-      // Check for a saved draft first
-      if (dayIdx < DAYS.length) {
-        loadDraft(dayIdx).then(saved => {
-          if (saved && saved.draft) {
-            setDraft(saved.draft)
-            setDraftRestored(true)
-            setTimeout(() => setDraftRestored(false), 3000)
-          } else {
-            initDraft(dayIdx, lastSession || null)
-          }
-        })
-      } else {
-        initDraft(dayIdx, lastSession || null)
+    let cancelled = false
+    setDraft(null)
+
+    async function load() {
+      // Check for saved draft first — inlined to avoid stale closure
+      const { data: draftRow } = await supabase
+        .from('session_drafts')
+        .select('draft, updated_at')
+        .eq('user_id', userId)
+        .eq('day_index', dayIdx)
+        .single()
+
+      if (cancelled) return
+
+      if (draftRow && draftRow.draft) {
+        setDraft(draftRow.draft)
+        setDraftRestored(true)
+        setTimeout(() => setDraftRestored(false), 3000)
+        return
       }
+
+      // No draft — load last session and init
+      const { data } = await supabase
+        .from('sessions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('day_index', dayIdx)
+        .order('session_date', { ascending: false })
+        .limit(1)
+
+      if (cancelled) return
+
+      const last = data && data[0] ? data[0] : null
+      setLastSession(last)
+      initDraft(dayIdx, last)
     }
-  }, [lastSession, dayIdx])
+
+    load()
+    return () => { cancelled = true }
+  }, [dayIdx, seeded, userId])
 
   // Auto-save draft 2 seconds after any change
   useEffect(() => {
