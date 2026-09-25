@@ -3,6 +3,10 @@
 .wl-session-title { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .wl-session-icon { font-size: 22px; line-height: 1; }
 .wl-session-name { font-size: 22px; font-weight: 800; color: #e8e8e8; letter-spacing: -0.3px; }
+.session-brief { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
+.brief-note { display: flex; gap: 8px; align-items: flex-start; background: #111; border: 1px solid #222; border-radius: 7px; padding: 7px 10px; }
+.brief-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.brief-text { font-size: 12px; color: #aaa; line-height: 1.5; }
 .watch-note { background: #0d1f3a; border: 1px solid #1e4080; border-radius: 8px; padding: 7px 10px; margin-bottom: 8px; font-size: 11px; color: #5b9cf6; line-height: 1.4; }
 .day-tabs { display: flex; gap: 5px; }
 .day-tab { flex: 1; padding: 8px 4px; font-size: 12px; border: 1px solid #2a2a2a; border-radius: 8px; background: transparent; color: #666; text-align: center; line-height: 1.3; }
