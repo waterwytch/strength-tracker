@@ -329,7 +329,7 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
     }, 2500)
   }
 
-  if (!draft) return <div className="loading-msg">Loading...</div>
+  if (!draft && dayIdx < DAYS.length) return <div className="loading-msg">Loading...</div>
 
   const prevDate = lastSession ? new Date(lastSession.session_date).toLocaleDateString('en-US', {weekday:'short',month:'short',day:'numeric'}) : null
 
