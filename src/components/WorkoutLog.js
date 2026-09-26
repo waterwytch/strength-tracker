@@ -190,7 +190,7 @@ export default function WorkoutLog({ userId, initialDay = 0, onActiveChange = ()
       saveDraft(dayIdx, draft)
     }, 2000)
     return () => clearTimeout(autoSaveTimer.current)
-  }, [draft, dayIdx, saveDraft, userId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [draft, dayIdx, saveDraft, userId])
 
   // Push the latest draft to the cloud when the app is backgrounded or closed
   useEffect(() => {
