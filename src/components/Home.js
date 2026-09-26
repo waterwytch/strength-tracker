@@ -138,7 +138,7 @@ function getTodayRecommendation(recentSessions) {
   }
 }
 
-export default function Home({ userId, onNavigate, onStartSession }) {
+export default function Home({ userId, onNavigate, onStartSession, activeSession = null }) {
   const [weather, setWeather] = useState(null)
   const [weatherErr, setWeatherErr] = useState(false)
   const [schedule, setSchedule] = useState([])
@@ -275,6 +275,18 @@ export default function Home({ userId, onNavigate, onStartSession }) {
         <div className="home-greeting">{getGreeting()}, Carolyn</div>
         <div className="home-date">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
       </div>
+
+      {/* In-progress session — one tap back in */}
+      {activeSession !== null && (
+        <button className="home-card resume-card" onClick={() => onStartSession(activeSession)}>
+          <div className="resume-dot" />
+          <div className="resume-text">
+            <div className="resume-label">Session in progress</div>
+            <div className="resume-title">{['Lower Body', 'Upper Body', 'Whole Body', 'Walk', 'Hike'][activeSession]}</div>
+          </div>
+          <div className="resume-go">Resume →</div>
+        </button>
+      )}
 
       {/* Weather */}
       <div className="home-card weather-card">
