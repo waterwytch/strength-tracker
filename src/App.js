@@ -8,6 +8,7 @@ import Progress from './components/Progress'
 import Schedule from './components/Schedule'
 import Recovery from './components/Recovery'
 import './App.css'
+import './JamesSessionGuard.css'
 
 export default function App() {
   const [session, setSession] = useState(null)
@@ -15,11 +16,36 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('home')
   const [logDay, setLogDay] = useState(0)
   const [logKey, setLogKey] = useState(0)
+  const [logMounted, setLogMounted] = useState(false)
+  const [activeSession, setActiveSession] = useState(null) // day index of an in-progress session
+
+  // On app open, pick up any in-progress session pointer saved on this device
+  useEffect(() => {
+    if (!session) return
+    try {
+      const raw = localStorage.getItem(`james_active_${session.user.id}`)
+      if (raw) {
+        const a = JSON.parse(raw)
+        if (a && Date.now() - a.updatedAt < 18 * 3600000) {
+          setActiveSession(a.dayIdx)
+          setLogDay(a.dayIdx)
+        }
+      }
+    } catch (e) {}
+  }, [session])
 
   function navigateToLog(dayIdx) {
+    // Same session already open? Just go back to it — never remount mid-workout
+    if (logMounted && dayIdx === activeSession) { setActiveTab('log'); return }
     setLogDay(dayIdx)
-    setLogKey(k => k + 1) // force remount every time
+    setLogKey(k => k + 1)
+    setLogMounted(true)
     setActiveTab('log')
+  }
+
+  function openTab(id) {
+    if (id === 'log') setLogMounted(true)
+    setActiveTab(id)
   }
 
   useEffect(() => {
@@ -45,8 +71,13 @@ export default function App() {
   return (
     <div className="app">
       <div className="app-content">
-        {activeTab === 'home' && <Home userId={session.user.id} onNavigate={setActiveTab} onStartSession={navigateToLog} />}
-        {activeTab === 'log' && <WorkoutLog key={logKey} userId={session.user.id} initialDay={logDay} />}
+        {activeTab === 'home' && <Home userId={session.user.id} onNavigate={openTab} onStartSession={navigateToLog} activeSession={activeSession} />}
+        {(logMounted || activeTab === 'log') && (
+          // Stays mounted (just hidden) when you switch tabs, so an in-progress session is never lost
+          <div style={{ display: activeTab === 'log' ? 'block' : 'none' }}>
+            <WorkoutLog key={logKey} userId={session.user.id} initialDay={logDay} onActiveChange={setActiveSession} onExit={() => { setActiveSession(null); setLogMounted(false); setActiveTab('home') }} />
+          </div>
+        )}
         {activeTab === 'history' && <History userId={session.user.id} />}
         {activeTab === 'progress' && <Progress userId={session.user.id} />}
         {activeTab === 'schedule' && <Schedule userId={session.user.id} />}
@@ -62,9 +93,9 @@ export default function App() {
           <button
             key={tab.id}
             className={`nav-btn ${activeTab === tab.id ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => openTab(tab.id)}
           >
-            <span className="nav-icon">{tab.icon}</span>
+            <span className="nav-icon">{tab.icon}{tab.id === 'log' && activeSession !== null && <span className="nav-live-dot" />}</span>
             <span className="nav-label">{tab.label}</span>
           </button>
         ))}
