@@ -8,7 +8,21 @@ const WALK_TABS = [
   { id: 'walk2', label: 'Walk 2', icon: '⛰️', cue: 'Easy pace — you should be able to hold a conversation. Focus on nasal breathing.' }
 ]
 
-export default function WorkoutLog({ userId, initialDay = 0 }) {
+// Local device backup of drafts — saves instantly, survives tab switches, app reloads and no-signal gyms
+const DRAFT_MAX_AGE = 18 * 3600000
+const lsDraftKey = (uid, idx) => `james_draft_${uid}_${idx}`
+const lsActiveKey = uid => `james_active_${uid}`
+function lsGet(k) { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : null } catch (e) { return null } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)) } catch (e) {} }
+function lsDel(k) { try { localStorage.removeItem(k) } catch (e) {} }
+// A draft only counts as "in progress" once you've actually logged something
+function isInProgress(d) {
+  if (!d) return false
+  return (d.exercises || []).some(ex => (ex.sets || []).some(st => st.done)) ||
+    Object.keys(d.joints || {}).length > 0 || !!d.notes || !!(d.watch && d.watch.time)
+}
+
+export default function WorkoutLog({ userId, initialDay = 0, onActiveChange = () => {}, onExit = () => {} }) {
   const [dayIdx, setDayIdx] = useState(initialDay) // 0-2 = strength days, 3-4 = walks
   const [draft, setDraft] = useState(null)
   const [lastSession, setLastSession] = useState(undefined)
@@ -22,6 +36,8 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
   const [walkSaving, setWalkSaving] = useState(false)
   const [draftRestored, setDraftRestored] = useState(false)
   const autoSaveTimer = React.useRef(null)
+  const latest = React.useRef({ draft: null, dayIdx: initialDay })
+  const [confirmCancel, setConfirmCancel] = useState(false)
 
   // Auto-save draft to Supabase
   const saveDraft = useCallback(async (idx, draftData) => {
@@ -93,6 +109,19 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
     setDraft(null)
     let active = true
 
+    // 1) Local device backup — instant, and always the most recent copy
+    const local = lsGet(lsDraftKey(userId, dayIdx))
+    if (local && local.draft && Date.now() - local.updatedAt < DRAFT_MAX_AGE) {
+      setDraft(local.draft)
+      setDraftRestored(true)
+      setTimeout(() => setDraftRestored(false), 3000)
+      supabase.from('sessions').select('*').eq('user_id', userId).eq('day_index', dayIdx)
+        .order('session_date', { ascending: false }).limit(1)
+        .then(({ data }) => { if (active) setLastSession(data && data[0] ? data[0] : null) })
+      return () => { active = false }
+    }
+    if (local) lsDel(lsDraftKey(userId, dayIdx))
+
     // Check for saved draft first, then fall back to last session
     supabase
       .from('session_drafts')
@@ -102,7 +131,10 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
       .maybeSingle()
       .then(({ data: draftRow }) => {
         if (!active) return
-        if (draftRow && draftRow.draft) {
+        if (draftRow && draftRow.draft && isInProgress(draftRow.draft)) {
+          supabase.from('sessions').select('*').eq('user_id', userId).eq('day_index', dayIdx)
+            .order('session_date', { ascending: false }).limit(1)
+            .then(({ data }) => { if (active) setLastSession(data && data[0] ? data[0] : null) })
           setDraft(draftRow.draft)
           setDraftRestored(true)
           setTimeout(() => setDraftRestored(false), 3000)
@@ -148,13 +180,53 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
 
   // Auto-save draft 2 seconds after any change
   useEffect(() => {
-    if (!draft || dayIdx >= DAYS.length) return
+    latest.current = { draft, dayIdx }
+    if (!draft || dayIdx >= DAYS.length || !isInProgress(draft)) return
+    lsSet(lsDraftKey(userId, dayIdx), { draft, updatedAt: Date.now() })
+    lsSet(lsActiveKey(userId), { dayIdx, updatedAt: Date.now() })
+    onActiveChange(dayIdx)
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
     autoSaveTimer.current = setTimeout(() => {
       saveDraft(dayIdx, draft)
     }, 2000)
     return () => clearTimeout(autoSaveTimer.current)
-  }, [draft, dayIdx, saveDraft])
+  }, [draft, dayIdx, saveDraft, userId]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Push the latest draft to the cloud when the app is backgrounded or closed
+  useEffect(() => {
+    const flush = () => {
+      const { draft: d, dayIdx: i } = latest.current
+      if (d && i < DAYS.length && isInProgress(d)) saveDraft(i, d)
+    }
+    const onVis = () => { if (document.visibilityState === 'hidden') flush() }
+    window.addEventListener('pagehide', flush)
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      flush()
+      window.removeEventListener('pagehide', flush)
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [saveDraft])
+
+  function clearLocal(idx) {
+    lsDel(lsDraftKey(userId, idx))
+    const a = lsGet(lsActiveKey(userId))
+    if (a && a.dayIdx === idx) lsDel(lsActiveKey(userId))
+    onActiveChange(null)
+  }
+
+  // Cancel: discard this session without saving anything
+  async function cancelSession() {
+    if (!confirmCancel) { setConfirmCancel(true); setTimeout(() => setConfirmCancel(false), 4000); return }
+    const idx = dayIdx
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
+    latest.current = { draft: null, dayIdx: idx }
+    clearLocal(idx)
+    setConfirmCancel(false)
+    setDraft(null)
+    try { await clearDraft(idx) } catch (e) {}
+    onExit()
+  }
 
   function initDraft(idx, last) {
     if (idx >= DAYS.length) return
@@ -258,6 +330,8 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
     }).select().single()
     setSaving(false)
     if (error) { alert('Save failed: ' + error.message); return; }
+    clearLocal(dayIdx)
+    latest.current = { draft: null, dayIdx }
     await clearDraft(dayIdx)
     setSavedSession(data)
     setView('success')
@@ -418,6 +492,11 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
         <div className="wl-session-title">
           <span className="wl-session-icon">{currentIcon}</span>
           <span className="wl-session-name">{currentTitle}</span>
+          {dayIdx < DAYS.length && (
+            <button className={`wl-cancel-btn ${confirmCancel ? 'confirm' : ''}`} onClick={cancelSession}>
+              {confirmCancel ? 'Tap again to discard' : '✕ Cancel'}
+            </button>
+          )}
         </div>
         {dayIdx < DAYS.length
           ? <div className="watch-note">⌚ Enable <strong>Functional Strength Training</strong> on Apple Watch before starting.</div>
@@ -614,6 +693,9 @@ export default function WorkoutLog({ userId, initialDay = 0 }) {
 
         <button className="finish-btn" onClick={finishSession} disabled={saving}>
           {saving ? '⏳ Saving...' : '✓ Finish & Save Session'}
+        </button>
+        <button className={`cancel-session-btn ${confirmCancel ? 'confirm' : ''}`} onClick={cancelSession}>
+          {confirmCancel ? 'Tap again to discard — nothing will be saved' : 'Cancel session (don\'t save)'}
         </button>
       </div>}
     </div>
